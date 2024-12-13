@@ -5,6 +5,13 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "homepage": "https://www.datavysta.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/datavysta/vysta-client.git"
+  },
+  "bugs": {
+    "url": "https://github.com/datavysta/vysta-client/issues"
+  },
   "publishConfig": {
     "access": "public"
   },
