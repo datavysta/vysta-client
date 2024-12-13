@@ -1,5 +1,5 @@
 {
-  "name": "vysta-client",
+  "name": "@datavysta/vysta-client",
   "version": "1.0.1",
   "description": "TypeScript client for Vysta APIs",
   "main": "dist/index.js",

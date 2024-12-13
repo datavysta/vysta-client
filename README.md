@@ -5,7 +5,7 @@ A strongly-typed TypeScript client for Vysta APIs.
 ## Installation
 
 ```bash
-npm install vysta-client
+npm install @datavysta/vysta-client
 ```
 
 ## Usage
@@ -13,8 +13,8 @@ npm install vysta-client
 ### Basic Setup
 
 ```typescript
-import { VystaClient, VystaService } from 'vysta-client';
-import type { QueryParams } from 'vysta-client';
+import { VystaClient, VystaService } from '@datavysta/vysta-client';
+import type { QueryParams } from '@datavysta/vysta-client';
 
 // Initialize the client
 const client = new VystaClient({
