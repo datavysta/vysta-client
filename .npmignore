@@ -1,0 +1,29 @@
+# Source
+src/
+
+# Tests
+tests/
+coverage/
+
+# Examples
+examples/
+
+# Development configs
+tsconfig.json
+.gitignore
+.github/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dependencies
+node_modules/
+
+# Misc
+.DS_Store
+*.tgz 

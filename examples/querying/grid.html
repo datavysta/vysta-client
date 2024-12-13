@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vysta AG Grid Example</title>
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@33.0.1/dist/ag-grid-community.min.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #myGrid {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="myGrid"></div>
+
+    <script type="module">
+        import { VystaClient } from '../../src/VystaClient';
+        import { ProductService, SupplierService, OrderService, CustomerService } from './services';
+
+        const client = new VystaClient({ 
+            baseUrl: 'http://localhost:8080',
+            debug: false
+        });
+
+        const services = {
+            products: new ProductService(client),
+            suppliers: new SupplierService(client),
+            orders: new OrderService(client),
+            customers: new CustomerService(client),
+            
+            async init() {
+                await client.login('test@datavysta.com', 'password');
+                return this;
+            }
+        };
+
+        // Grid configuration
+        const gridOptions = {
+            columnDefs: [
+                { field: 'product_id', sortable: true },
+                { field: 'product_name', sortable: true, filter: true },
+                { field: 'unit_price', sortable: true },
+                { field: 'units_in_stock', sortable: true }
+            ],
+            defaultColDef: {
+                flex: 1,
+                resizable: true,
+                filter: true
+            },
+            alwaysShowVerticalScroll: true,
+            rowModelType: 'infinite',
+            cacheBlockSize: 20,
+            maxBlocksInCache: 5,
+            datasource: {
+                getRows: async (params) => {
+                    try {
+                        const { startRow, endRow, sortModel, filterModel } = params;
+                        
+                        // Build query params
+                        const queryParams = {
+                            offset: startRow,
+                            limit: endRow - startRow
+                        };
+
+                        // Add sorting
+                        if (sortModel?.length) {
+                            queryParams.order = {
+                                [sortModel[0].colId]: sortModel[0].sort
+                            };
+                        }
+
+                        // Add filters
+                        if (Object.keys(filterModel).length) {
+                            queryParams.filters = {};
+                            Object.entries(filterModel).forEach(([field, filter]) => {
+                                if (filter.type === 'contains') {
+                                    queryParams.filters[field] = { like: `%${filter.filter}%` };
+                                }
+                            });
+                        }
+
+                        const products = await services.products.getAll(queryParams);
+                        
+                        // Tell grid how many rows are left
+                        const lastRow = products.length < (endRow - startRow) ? startRow + products.length : -1;
+                        
+                        params.successCallback(products, lastRow);
+                    } catch (error) {
+                        params.failCallback();
+                        console.error('Failed to fetch data:', error);
+                    }
+                }
+            }
+        };
+
+        // Initialize grid
+        async function initGrid() {
+            await services.init();
+            const gridDiv = document.querySelector('#myGrid');
+            agGrid.createGrid(gridDiv, gridOptions);
+        }
+
+        initGrid();
+    </script>
+</body>
+</html> 

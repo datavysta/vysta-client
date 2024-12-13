@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Product Management - CRUD Example</title>
+    <style>
+        html, body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        input, select {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background: #0066cc;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .product-list {
+            margin-top: 2rem;
+        }
+        .product-item {
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .actions button {
+            margin-left: 0.5rem;
+        }
+        .delete-btn {
+            background: #dc3545;
+        }
+        .delete-btn:hover {
+            background: #c82333;
+        }
+        .status {
+            padding: 0.5rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .status.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .product-info {
+            flex-grow: 1;
+        }
+        .product-price {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Product Management</h1>
+        
+        <div id="status" class="status"></div>
+
+        <!-- Product Form -->
+        <form id="productForm">
+            <div class="form-group">
+                <label for="productId">Product ID</label>
+                <input type="number" id="productId" required>
+            </div>
+
+            <div class="form-group">
+                <label for="productName">Product Name</label>
+                <input type="text" id="productName" required autoFocus>
+            </div>
+            
+            <div class="form-group">
+                <label for="unitPrice">Unit Price</label>
+                <input type="number" id="unitPrice" step="0.01" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="unitsInStock">Units in Stock</label>
+                <input type="number" id="unitsInStock" required>
+            </div>
+            
+            <button type="submit">Add Product</button>
+        </form>
+
+        <!-- Product List -->
+        <div id="productList" class="product-list"></div>
+    </div>
+
+    <script type="module">
+        import { VystaClient } from '../../src/VystaClient';
+        import { ProductService } from '../querying/services';
+
+        const client = new VystaClient({ 
+            baseUrl: 'http://localhost:8080',
+            debug: true
+        });
+
+        const products = new ProductService(client);
+        const productForm = document.getElementById('productForm');
+        const productList = document.getElementById('productList');
+        const status = document.getElementById('status');
+
+        function showStatus(message, isError = false) {
+            status.textContent = message;
+            status.className = 'status ' + (isError ? 'error' : 'success');
+            setTimeout(() => {
+                status.className = 'status';
+            }, 3000);
+        }
+
+        function setLoading(loading) {
+            document.body.classList.toggle('loading', loading);
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => button.disabled = loading);
+        }
+
+        async function loadProducts() {
+            try {
+                setLoading(true);
+                const allProducts = await products.getAll({
+                    order: { product_name: 'asc' }
+                });
+                
+                productList.innerHTML = allProducts.map(product => `
+                    <div class="product-item" data-id="${product.product_id}">
+                        <div class="product-info">
+                            <strong>${product.product_name}</strong>
+                            <div class="product-price">
+                                Price: $${product.unit_price} | Stock: ${product.units_in_stock}
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button onclick="window.setStock(${product.product_id}, 0)">Set Stock to 0</button>
+                            <button class="delete-btn" onclick="window.deleteProduct(${product.product_id})">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                showStatus(error.message, true);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Initialize
+        async function initialize() {
+            try {
+                setLoading(true);
+                await client.login('test@datavysta.com', 'password');
+                
+                // Get highest product ID
+                const [latestProduct] = await products.getAll({
+                    order: { product_id: 'desc' },
+                    limit: 1
+                });
+                
+                // Set next product ID as default
+                const nextId = latestProduct ? latestProduct.product_id + 1 : 1;
+                document.getElementById('productId').value = nextId;
+                
+                await loadProducts();
+            } catch (error) {
+                showStatus(error.message, true);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Start initialization
+        initialize();
+
+        // Form submission
+        productForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                setLoading(true);
+                const formData = {
+                    product_id: parseInt(document.getElementById('productId').value),
+                    product_name: document.getElementById('productName').value,
+                    unit_price: parseFloat(document.getElementById('unitPrice').value),
+                    units_in_stock: parseInt(document.getElementById('unitsInStock').value),
+                    discontinued: 0
+                };
+
+                await products.create(formData);
+                showStatus('Product created successfully');
+                productForm.reset();
+                await loadProducts();
+            } catch (error) {
+                showStatus(error.message, true);
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // Make functions available to onclick handlers
+        window.setStock = async (id) => {
+            try {
+                setLoading(true);
+                const affected = await products.update(id, { units_in_stock: 0 });
+                showStatus(`Updated stock for ${affected} product(s)`);
+                await loadProducts();
+            } catch (error) {
+                showStatus(error.message, true);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        window.deleteProduct = async (id) => {
+            if (!confirm('Are you sure you want to delete this product?')) return;
+            
+            try {
+                setLoading(true);
+                const affected = await products.delete(id);
+                showStatus(`Deleted ${affected} product(s)`);
+                await loadProducts();
+            } catch (error) {
+                showStatus(error.message, true);
+            } finally {
+                setLoading(false);
+            }
+        };
+    </script>
+</body>
+</html> 
