@@ -1,13 +1,34 @@
-export { VystaClient } from './VystaClient';
-export { VystaService } from './base/VystaService';
-export type { 
+import { VystaClient } from './VystaClient';
+import { VystaService } from './base/VystaService';
+import { IDataService } from './IDataService';
+import type { 
   VystaConfig,
   QueryParams,
   FilterOperator,
   FilterValue,
   FilterCondition,
   SortDirection,
+  OrderBy,
   Principal,
   AuthResult,
-  VystaResponse
-} from './types'; 
+  VystaResponse,
+  DataResult
+} from './types';
+
+export {
+  VystaClient,
+  VystaService,
+  IDataService,
+  // Types
+  VystaConfig,
+  QueryParams,
+  FilterOperator,
+  FilterValue,
+  FilterCondition,
+  SortDirection,
+  OrderBy,
+  Principal,
+  AuthResult,
+  VystaResponse,
+  DataResult
+}; 

@@ -2,8 +2,16 @@
   "name": "@datavysta/vysta-client",
   "version": "1.0.1",
   "description": "TypeScript client for Vysta APIs",
+  "type": "module",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "homepage": "https://www.datavysta.com/",
   "repository": {
     "type": "git",
@@ -19,8 +27,8 @@
     "build": "tsc",
     "prepare": "npm run build",
     "prepublishOnly": "npm test",
-    "test": "jest -c tests/jest.config.js",
-    "test:watch": "jest -c tests/jest.config.js --watch"
+    "test": "jest -c tests/jest.config.cjs",
+    "test:watch": "jest -c tests/jest.config.cjs --watch"
   },
   "dependencies": {
     "cross-fetch": "^4.0.0",

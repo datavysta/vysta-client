@@ -4,32 +4,32 @@ import { Customer, Order, Product, Supplier } from './types';
 
 export class ProductService extends VystaService<Product> {
   constructor(client: VystaClient) {
-    super(client, 'Northwinds', 'products', {
-      primaryKey: 'product_id'
+    super(client, 'Northwinds', 'Products', {
+      primaryKey: 'productId'
     });
   }
 }
 
 export class OrderService extends VystaService<Order> {
   constructor(client: VystaClient) {
-    super(client, 'Northwinds', 'orders', {
-      primaryKey: 'order_id'
+    super(client, 'Northwinds', 'Orders', {
+      primaryKey: 'orderId'
     });
   }
 }
 
 export class CustomerService extends VystaService<Customer> {
   constructor(client: VystaClient) {
-    super(client, 'Northwinds', 'customers', {
-      primaryKey: 'customer_id'
+    super(client, 'Northwinds', 'Customers', {
+      primaryKey: 'customerId'
     });
   }
 }
 
 export class SupplierService extends VystaService<Supplier> {
   constructor(client: VystaClient) {
-    super(client, 'Northwinds', 'suppliers', {
-      primaryKey: 'supplier_id'
+    super(client, 'Northwinds', 'Suppliers', {
+      primaryKey: 'supplierId'
     });
   }
 } 

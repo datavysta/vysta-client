@@ -1,44 +1,17 @@
 import fetch from 'cross-fetch';
-import { jest } from '@jest/globals';
 import { VystaClient } from '../src/VystaClient';
-import { TEST_CONFIG } from './config';
+import { AuthResult } from '../src/types';
 
-const storageMock = (() => {
-  let store: { [key: string]: string } = {};
-  return {
-    getItem: jest.fn((key: string) => store[key] || null),
-    setItem: jest.fn((key: string, value: string) => {
-      store[key] = String(value);
-    }),
-    removeItem: jest.fn((key: string) => {
-      delete store[key];
-    }),
-    clear: jest.fn(() => {
-      store = {};
-    }),
-    length: 0,
-    key: jest.fn((i: number) => ''),
-  };
-})();
-
-Object.defineProperty(global, 'sessionStorage', { value: storageMock });
+// Add fetch to global scope for tests
 global.fetch = fetch;
 
-export function createTestClient(debug: boolean = false): VystaClient {
+export function createTestClient(): VystaClient {
   return new VystaClient({
-    baseUrl: TEST_CONFIG.baseUrl,
-    debug
+    baseUrl: 'http://localhost:8080',
+    debug: false
   });
 }
 
-export async function authenticateClient(client: VystaClient): Promise<void> {
-  await client.login(TEST_CONFIG.credentials.username, TEST_CONFIG.credentials.password);
-}
-
-beforeEach(() => {
-  jest.clearAllMocks();
-});
-
-afterEach(() => {
-  sessionStorage.clear();
-}); 
+export async function authenticateClient(client: VystaClient): Promise<AuthResult> {
+  return client.login('test@datavysta.com', 'password');
+} 

@@ -42,10 +42,10 @@
         // Grid configuration
         const gridOptions = {
             columnDefs: [
-                { field: 'product_id', sortable: true },
-                { field: 'product_name', sortable: true, filter: true },
-                { field: 'unit_price', sortable: true },
-                { field: 'units_in_stock', sortable: true }
+                { field: 'productId', sortable: true },
+                { field: 'productName', sortable: true, filter: true },
+                { field: 'unitPrice', sortable: true },
+                { field: 'unitsInStock', sortable: true }
             ],
             defaultColDef: {
                 flex: 1,
@@ -64,7 +64,8 @@
                         // Build query params
                         const queryParams = {
                             offset: startRow,
-                            limit: endRow - startRow
+                            limit: endRow - startRow,
+                            recordCount: true  // Always request record count for accurate total
                         };
 
                         // Add sorting
@@ -84,12 +85,13 @@
                             });
                         }
 
-                        const products = await services.products.getAll(queryParams);
+                        const result = await services.products.getAll(queryParams);
                         
-                        // Tell grid how many rows are left
-                        const lastRow = products.length < (endRow - startRow) ? startRow + products.length : -1;
+                        // Use the count from the result for total rows
+                        // If count is -1, AG Grid will keep requesting more rows
+                        const lastRow = result.count;
                         
-                        params.successCallback(products, lastRow);
+                        params.successCallback(result.data, lastRow);
                     } catch (error) {
                         params.failCallback();
                         console.error('Failed to fetch data:', error);

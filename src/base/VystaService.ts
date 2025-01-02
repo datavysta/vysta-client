@@ -1,11 +1,12 @@
 import { VystaClient } from '../VystaClient';
-import { QueryParams, FilterCondition } from '../types';
+import { QueryParams, FilterCondition, DataResult } from '../types';
+import { IDataService } from '../IDataService';
 
 export interface ServiceConfig<T> {
   primaryKey: keyof T;
 }
 
-export class VystaService<T> {
+export class VystaService<T> implements IDataService<T> {
   protected primaryKey: keyof T;
 
   constructor(
@@ -28,11 +29,15 @@ export class VystaService<T> {
   /**
    * Retrieves all records matching the optional query parameters
    * @param params - Optional query parameters for filtering, sorting, and pagination
-   * @returns A promise that resolves to an array of records
+   * @returns A promise that resolves to a DataResult containing the records and total count
    */
-  async getAll(params?: QueryParams<T>): Promise<T[]> {
+  async getAll(params: QueryParams<T> = {}): Promise<DataResult<T>> {
     const response = await this.client.get<T>(`${this.connection}/${this.entity}`, params);
-    return Array.isArray(response) ? response : [response];
+    return {
+      data: response.data as T[],
+      count: response.recordCount ?? -1,
+      error: null
+    };
   }
 
   /**
@@ -45,7 +50,7 @@ export class VystaService<T> {
       `${this.connection}/${this.entity}`, 
       this.createPkFilter(id)
     );
-    return Array.isArray(response) ? response[0] : response;
+    return Array.isArray(response.data) ? response.data[0] : response.data;
   }
 
   /**
@@ -53,10 +58,10 @@ export class VystaService<T> {
    * @param data - The data to create
    * @returns A promise that resolves to the created record
    */
-  async create(data: T): Promise<T> {
+  async create(data: Partial<T>): Promise<T> {
     return this.client.post<T>(
       `${this.connection}/${this.entity}`, 
-      data
+      data as T
     );
   }
 

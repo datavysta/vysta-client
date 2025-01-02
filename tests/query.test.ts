@@ -2,11 +2,12 @@ import { ProductService, SupplierService } from '../examples/querying/services';
 import { createTestClient, authenticateClient } from './setup';
 
 describe('Query Operations', () => {
-  const client = createTestClient(false);
+  const client = createTestClient();
   let products: ProductService;
   let suppliers: SupplierService;
 
-  beforeAll(() => {
+  beforeAll(async () => {
+    await authenticateClient(client);
     products = new ProductService(client);
     suppliers = new SupplierService(client);
   });
@@ -18,131 +19,135 @@ describe('Query Operations', () => {
   describe('Comparison Operators', () => {
     it('eq - equals', async () => {
       const result = await products.getAll({
-        select: ['product_id', 'discontinued'],
+        select: ['productId', 'discontinued'],
         filters: {
           discontinued: { eq: 0 }
         }
       });
-      expect(result[0].discontinued).toBe(0);
+      expect(result.data[0].discontinued).toBe(0);
     });
 
     it('gt - greater than', async () => {
       const result = await products.getAll({
-        select: ['product_id', 'unit_price'],
+        select: ['productId', 'unitPrice'],
         filters: {
-          unit_price: { gt: 20 }
+          unitPrice: { gt: 20 }
         }
       });
-      expect(result[0].unit_price).toBeGreaterThan(20);
+      expect(result.data[0].unitPrice).toBeGreaterThan(20);
     });
 
     it('gte - greater than or equal', async () => {
       const result = await products.getAll({
-        select: ['product_id', 'unit_price'],
+        select: ['productId', 'unitPrice'],
         filters: {
-          unit_price: { gte: 20 }
+          unitPrice: { gte: 20 }
         }
       });
-      expect(result[0].unit_price).toBeGreaterThanOrEqual(20);
+      expect(result.data[0].unitPrice).toBeGreaterThanOrEqual(20);
     });
 
     it('lt - less than', async () => {
       const result = await products.getAll({
-        select: ['product_id', 'unit_price'],
+        select: ['productId', 'unitPrice'],
         filters: {
-          unit_price: { lt: 10 }
+          unitPrice: { lt: 10 }
         }
       });
-      expect(result[0].unit_price).toBeLessThan(10);
+      expect(result.data[0].unitPrice).toBeLessThan(10);
     });
 
     it('lte - less than or equal', async () => {
       const result = await products.getAll({
-        select: ['product_id', 'unit_price'],
+        select: ['productId', 'unitPrice'],
         filters: {
-          unit_price: { lte: 10 }
+          unitPrice: { lte: 10 }
         }
       });
-      expect(result[0].unit_price).toBeLessThanOrEqual(10);
+      expect(result.data[0].unitPrice).toBeLessThanOrEqual(10);
     });
   });
 
   describe('Array Operators', () => {
     it.skip('in - included in array', async () => {
       const result = await products.getAll({
-        select: ['product_id', 'category_id'],
+        select: ['productId', 'categoryId'],
         filters: {
-          category_id: { in: [1, 2] }
+          categoryId: { in: [1, 2] }
         }
       });
-      expect([1, 2]).toContain(result[0].category_id);
+      expect([1, 2]).toContain(result.data[0].categoryId);
     });
 
     it.skip('nin - not included in array', async () => {
       const result = await products.getAll({
-        select: ['product_id', 'category_id'],
+        select: ['productId', 'categoryId'],
         filters: {
-          category_id: { nin: [1, 2] }
+          categoryId: { nin: [1, 2] }
         }
       });
-      expect([1, 2]).not.toContain(result[0].category_id);
+      expect([1, 2]).not.toContain(result.data[0].categoryId);
     });
   });
 
   describe('Null Operators', () => {
     it('isnull - is null', async () => {
       const result = await suppliers.getAll({
-        select: ['supplier_id', 'region'],
+        select: ['supplierId', 'region'],
         filters: {
           region: { isnull: true }
         }
       });
-      expect(result[0].region).toBeNull();
+      expect(result.count).toBeGreaterThan(0);
+      expect(result.data[0].region).toBeUndefined();
     });
 
     it('isnotnull - is not null', async () => {
       const result = await products.getAll({
-        select: ['product_id', 'product_name'],
+        select: ['productId', 'productName'],
         filters: {
-          product_name: { isnotnull: true }
+          productName: { isnotnull: true }
         }
       });
-      expect(result[0].product_name).toBeTruthy();
+      expect(result.data[0].productName).toBeTruthy();
     });
   });
 
   describe('String Pattern Operators', () => {
     it('like - pattern matching', async () => {
       const result = await products.getAll({
-        select: ['product_id', 'product_name'],
+        select: ['productId', 'productName'],
         filters: {
-          product_name: { like: '%Aniseed%' }
+          productName: { like: '%Aniseed%' }
         }
       });
-      expect(result[0].product_name).toMatch(/Aniseed/i);
-      expect(result[0].product_name).toBe('Aniseed Syrup');
+      expect(result.data[0].productName).toMatch(/Aniseed/i);
+      expect(result.data[0].productName).toBe('Aniseed Syrup');
     });
 
     it('nlike - negative pattern matching', async () => {
       const result = await products.getAll({
-        select: ['product_id', 'product_name'],
+        select: ['productId', 'productName'],
         filters: {
-          product_name: { nlike: '%Chai%' }
+          productName: { nlike: '%Chai%' }
         }
       });
-      expect(result[0].product_name).not.toMatch(/Chai/i);
+      expect(result.data[0].productName).not.toMatch(/Chai/i);
     });
   });
 
   describe('Error Handling', () => {
     it('returns empty array for non-existent records', async () => {
       const result = await suppliers.getAll({
-        select: ['supplier_id', 'company_name'],
+        select: ['supplierId', 'companyName'],
+        recordCount: true,
         filters: {
-          company_name: { eq: 'NON_EXISTENT_SUPPLIER' }
+          companyName: { eq: 'NON_EXISTENT_SUPPLIER' }
         }
       });
-      expect(result).toEqual([]);
+      expect(result.data).toEqual([]);
+      expect(result.count).toBe(0);
+      expect(result.error).toBeNull();
     });
   });
 }); 

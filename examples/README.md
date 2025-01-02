@@ -10,8 +10,25 @@ A sample application demonstrating:
 - CRUD operations
 - Filtering
 - Sorting
-- Pagination
-- AG Grid integration
+- Pagination with infinite scroll
+- AG Grid integration with server-side row model
+- Total record count tracking
+
+### Response Types
+
+The `getAll()` method returns a `DataResult<T>` object:
+```typescript
+interface DataResult<T> {
+  data: T[];        // Array of records
+  count: number;    // Total record count (-1 if not available)
+  error: Error | null;
+}
+
+// Example usage:
+const result = await products.getAll();
+console.log('Records:', result.data.length);
+console.log('Total count:', result.count);
+```
 
 ### Running the Examples
 
@@ -36,7 +53,10 @@ npm run dev
 
 ### Example Files
 
-- `querying/grid.html` - AG Grid integration example with infinite scrolling
+- `querying/grid.html` - AG Grid integration example with infinite scrolling and server-side row model
+  - Uses record count header for accurate total rows
+  - Implements server-side sorting and filtering
+  - Demonstrates efficient data loading with pagination
 - `crud/products.html` - Product management with CRUD operations
 - `services.ts` - Service definitions for entities
 - `types.ts` - TypeScript interfaces for data schema

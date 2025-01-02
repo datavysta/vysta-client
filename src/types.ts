@@ -19,6 +19,12 @@ export interface AuthResult {
   principal: Principal;
 }
 
+export interface DataResult<T> {
+  data: T[];
+  error: Error | null;
+  count: number;
+}
+
 export type FilterOperator = 
   | 'eq' 
   | 'neq' 
@@ -41,16 +47,19 @@ export type FilterCondition = {
   [K in FilterOperator]?: FilterValue;
 };
 
+export type OrderBy<T> = {
+  [K in keyof T]?: SortDirection;
+};
+
 export type QueryParams<T> = {
   select?: Array<keyof T>;
   filters?: {
     [K in keyof T]?: FilterCondition;
   };
-  order?: {
-    [K in keyof T]?: SortDirection;
-  };
+  order?: OrderBy<T>;
   limit?: number;
   offset?: number;
+  recordCount?: boolean;
 };
 
 export interface VystaResponse<T> {

@@ -1,5 +1,18 @@
-import { VystaAuth } from './VystaAuth';
-import {VystaConfig, QueryParams, FilterCondition, AuthResult} from './types';
+import { VystaAuth, TokenStorage, AuthErrorHandler } from './VystaAuth';
+import { AuthResult } from './types';
+import type { QueryParams, FilterCondition } from './types';
+
+export interface GetResponse<T> {
+  data: T[];
+  recordCount?: number;
+}
+
+export interface VystaConfig {
+  baseUrl: string;
+  storage?: TokenStorage;
+  errorHandler?: AuthErrorHandler;
+  debug?: boolean;
+}
 
 export class VystaClient {
   private auth: VystaAuth;
@@ -9,7 +22,8 @@ export class VystaClient {
     this.debug = config.debug || false;
     this.auth = new VystaAuth(
       this.config.baseUrl,
-      this.debug
+      config.storage,
+      config.errorHandler
     );
   }
 
@@ -60,6 +74,10 @@ export class VystaClient {
       queryParts.push(`limit=${params.limit}`);
     }
 
+    if (params.recordCount) {
+        queryParts.push('recordCount=true');
+    }
+
     if (params.offset !== undefined) {
       queryParts.push(`offset=${params.offset}`);
     }
@@ -89,24 +107,32 @@ export class VystaClient {
    * Performs a GET request to retrieve data
    * @param path - The path to the resource
    * @param params - Optional query parameters
-   * @returns A promise that resolves to an array of type T
+   * @returns A promise that resolves to a GetResponse containing data and optional record count
    */
-  async get<T>(path: string, params?: QueryParams<T>): Promise<T[]> {
-    const headers = await this.auth.getAuthHeaders();
-    const url = `${this.config.baseUrl}/api/rest/connections/${path}${this.buildQueryString(params)}`;
-    
-    this.logRequest('GET', url);
+  async get<T>(path: string, params?: QueryParams<T>): Promise<GetResponse<T>> {
+    try {
+      const headers = await this.auth.getAuthHeaders();
+      const url = `${this.config.baseUrl}/api/rest/connections/${path}${this.buildQueryString(params)}`;
+      
+      this.logRequest('GET', url);
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers
-    });
+      const response = await fetch(url, {
+        method: 'GET',
+        headers
+      });
 
-    if (!response.ok) {
-      await this.handleErrorResponse(response, url);
+      if (!response.ok) {
+        await this.handleErrorResponse(response, url);
+      }
+
+      const data = await response.json();
+      const recordCount = params?.recordCount ? Number(response.headers.get('Recordcount') ?? -1) : undefined;
+
+      return { data, recordCount };
+    } catch (error) {
+      this.log('Request failed:', error);
+      throw error instanceof Error ? error : new Error(String(error));
     }
-
-    return response.json();
   }
 
   /**
