@@ -168,7 +168,7 @@
                         <div class="product-info">
                             <strong>${product.product_name}</strong>
                             <div class="product-price">
-                                Price: $${product.unit_price} | Stock: ${product.units_in_stock}
+                                Price: $${product.unitPrice} | Stock: ${product.unitsInStock}
                             </div>
                         </div>
                         <div class="actions">
@@ -219,8 +219,8 @@
                 const formData = {
                     product_id: parseInt(document.getElementById('productId').value),
                     product_name: document.getElementById('productName').value,
-                    unit_price: parseFloat(document.getElementById('unitPrice').value),
-                    units_in_stock: parseInt(document.getElementById('unitsInStock').value),
+                    unitPrice: parseFloat(document.getElementById('unitPrice').value),
+                    unitsInStock: parseInt(document.getElementById('unitsInStock').value),
                     discontinued: 0
                 };
 
@@ -239,7 +239,7 @@
         window.setStock = async (id) => {
             try {
                 setLoading(true);
-                const affected = await products.update(id, { units_in_stock: 0 });
+                const affected = await products.update(id, { unitsInStock: 0 });
                 showStatus(`Updated stock for ${affected} product(s)`);
                 await loadProducts();
             } catch (error) {

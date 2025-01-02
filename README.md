@@ -98,7 +98,8 @@ console.log('Total count:', result.count);
 const filtered = await products.getAll({
   filters: {
     unitPrice: { gt: 20 },
-    discontinued: { eq: 0 }
+    discontinued: { eq: 0 },
+    category: { eq: 'Beverages' }
   },
   order: {
     unitPrice: 'desc'
@@ -115,7 +116,7 @@ The following query parameters are supported:
 
 - `limit`: Maximum number of records to return
 - `offset`: Number of records to skip
-- `orderBy`: Field to order by (prefix with `-` for descending order)
+- `order`: Object specifying field and direction ('asc' or 'desc')
 - `filter`: Filter expression
 - `recordCount`: Set to true to include total record count in response header
 
@@ -124,7 +125,9 @@ Example:
 const params = {
   limit: 10,
   offset: 0,
-  orderBy: '-id',
+  order: {
+    productId: 'desc'
+  },
   filter: 'category eq "Beverages"',
   recordCount: true  // Optional: Include total record count
 };
