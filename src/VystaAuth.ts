@@ -9,6 +9,12 @@ export enum TokenKey {
   Principal = 'principal'
 }
 
+const AUTH_ERRORS = {
+  REFRESH_FAILED: 'Authentication refresh failed',
+  NO_TOKENS: 'No tokens available for refresh',
+  NOT_AUTHENTICATED: 'Not authenticated'
+} as const;
+
 export interface TokenStorage {
   setToken(key: TokenKey, value: string): void;
   getToken(key: TokenKey): string | null;
@@ -123,7 +129,7 @@ export class VystaAuth {
     try {
       const token = await this.getAuthToken(true);
       if (!token) {
-        throw new Error('Not authenticated');
+        throw new Error(AUTH_ERRORS.NOT_AUTHENTICATED);
       }
 
       return {
@@ -164,11 +170,10 @@ export class VystaAuth {
     return this.accessToken;
   }
 
-  private async refreshAuth(): Promise<string> {
+  async refreshAuth() {
     if (!this.accessToken || !this.refreshToken) {
-      throw new Error('No tokens available for refresh');
+      throw new Error(AUTH_ERRORS.NO_TOKENS);
     }
-
     try {
       const response = await fetch(`${this.baseUrl}/api/auth/getrefreshtoken`, {
         method: 'POST',
@@ -180,17 +185,21 @@ export class VystaAuth {
           refreshToken: this.refreshToken
         })
       });
-
+      
+      const result = await response.json();
+      
       if (!response.ok) {
         this.clearAuth();
-        throw new Error('Authentication refresh failed');
+        throw new Error(AUTH_ERRORS.REFRESH_FAILED);
       }
-
-      const result = await response.json();
+      
       await this.reinitializeFromAuthenticationResult(result);
       return result.accessToken;
-    } catch (error) {
-      this.errorHandler.onError(error instanceof Error ? error : new Error(String(error)));
+    }
+    catch (error) {
+      if (!(error instanceof Error) || error.message !== AUTH_ERRORS.REFRESH_FAILED) {
+        this.clearAuth();
+      }
       throw error;
     }
   }

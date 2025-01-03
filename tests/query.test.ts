@@ -96,7 +96,8 @@ describe('Query Operations', () => {
         select: ['supplierId', 'region'],
         filters: {
           region: { isnull: true }
-        }
+        },
+        recordCount: true
       });
       expect(result.count).toBeGreaterThan(0);
       expect(result.data[0].region).toBeUndefined();

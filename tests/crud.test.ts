@@ -61,7 +61,9 @@ describe('CRUD Operations', () => {
     });
 
     it('should get all products', async () => {
-      const allProducts = await products.getAll();
+      const allProducts = await products.getAll({
+        recordCount: true
+      });
       expect(Array.isArray(allProducts.data)).toBe(true);
       expect(allProducts.data.length).toBeGreaterThan(0);
       expect(allProducts.count).toBeGreaterThan(0);
