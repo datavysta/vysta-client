@@ -159,21 +159,25 @@
         async function loadProducts() {
             try {
                 setLoading(true);
-                const allProducts = await products.getAll({
-                    order: { product_name: 'asc' }
+                const result = await products.getAll({
+                    order: { productName: 'asc' }
                 });
+
+                if (result.error) {
+                    throw result.error;
+                }
                 
-                productList.innerHTML = allProducts.map(product => `
-                    <div class="product-item" data-id="${product.product_id}">
+                productList.innerHTML = result.data.map(product => `
+                    <div class="product-item" data-id="${product.productId}">
                         <div class="product-info">
-                            <strong>${product.product_name}</strong>
+                            <strong>${product.productName}</strong>
                             <div class="product-price">
                                 Price: $${product.unitPrice} | Stock: ${product.unitsInStock}
                             </div>
                         </div>
                         <div class="actions">
-                            <button onclick="window.setStock(${product.product_id}, 0)">Set Stock to 0</button>
-                            <button class="delete-btn" onclick="window.deleteProduct(${product.product_id})">Delete</button>
+                            <button onclick="window.setStock(${product.productId}, 0)">Set Stock to 0</button>
+                            <button class="delete-btn" onclick="window.deleteProduct(${product.productId})">Delete</button>
                         </div>
                     </div>
                 `).join('');
@@ -191,13 +195,17 @@
                 await client.login('test@datavysta.com', 'password');
                 
                 // Get highest product ID
-                const [latestProduct] = await products.getAll({
-                    order: { product_id: 'desc' },
+                const result = await products.getAll({
+                    order: { productId: 'desc' },
                     limit: 1
                 });
+
+                if (result.error) {
+                    throw result.error;
+                }
                 
                 // Set next product ID as default
-                const nextId = latestProduct ? latestProduct.product_id + 1 : 1;
+                const nextId = result.data.length > 0 ? result.data[0].productId + 1 : 1;
                 document.getElementById('productId').value = nextId;
                 
                 await loadProducts();
@@ -217,8 +225,8 @@
             try {
                 setLoading(true);
                 const formData = {
-                    product_id: parseInt(document.getElementById('productId').value),
-                    product_name: document.getElementById('productName').value,
+                    productId: parseInt(document.getElementById('productId').value),
+                    productName: document.getElementById('productName').value,
                     unitPrice: parseFloat(document.getElementById('unitPrice').value),
                     unitsInStock: parseInt(document.getElementById('unitsInStock').value),
                     discontinued: 0
