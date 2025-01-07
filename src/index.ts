@@ -1,6 +1,6 @@
-import { VystaClient } from './VystaClient';
-import { VystaService } from './base/VystaService';
-import { IDataService } from './IDataService';
+import { VystaClient } from './VystaClient.js';
+import { VystaService } from './base/VystaService.js';
+import { IDataService } from './IDataService.js';
 import type { 
   VystaConfig,
   QueryParams,
@@ -13,7 +13,7 @@ import type {
   AuthResult,
   VystaResponse,
   DataResult
-} from './types';
+} from './types.js';
 
 export {
   VystaClient,

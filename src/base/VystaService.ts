@@ -1,6 +1,6 @@
-import { VystaClient } from '../VystaClient';
-import { QueryParams, FilterCondition, DataResult } from '../types';
-import { IDataService } from '../IDataService';
+import { VystaClient } from '../VystaClient.js';
+import { QueryParams, FilterCondition, DataResult } from '../types.js';
+import { IDataService } from '../IDataService.js';
 
 export interface ServiceConfig<T> {
   primaryKey: keyof T;

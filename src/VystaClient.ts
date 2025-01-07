@@ -1,6 +1,6 @@
-import { VystaAuth, TokenStorage, AuthErrorHandler } from './VystaAuth';
-import { AuthResult } from './types';
-import type { QueryParams, FilterCondition } from './types';
+import { VystaAuth, TokenStorage, AuthErrorHandler } from './VystaAuth.js';
+import { AuthResult } from './types.js';
+import type { QueryParams, FilterCondition } from './types.js';
 
 export interface GetResponse<T> {
   data: T[];

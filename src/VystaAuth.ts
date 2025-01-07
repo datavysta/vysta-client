@@ -1,5 +1,5 @@
 import { jwtDecode } from 'jwt-decode';
-import { AuthResult, Principal } from './types';
+import { AuthResult, Principal } from './types.js';
 
 export enum TokenKey {
   AccessToken = 'accessToken',
