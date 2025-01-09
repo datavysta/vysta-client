@@ -47,7 +47,7 @@ export class VystaClient {
 
     const queryParts: string[] = [];
 
-    if (params.select) {
+    if (params.select && params.select.length) {
       queryParts.push(`select=${params.select.join(',')}`);
     }
 

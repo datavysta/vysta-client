@@ -1,20 +1,21 @@
 import { VystaClient } from '../VystaClient.js';
-import { QueryParams, FilterCondition, DataResult } from '../types.js';
-import { IDataService } from '../IDataService.js';
+import { QueryParams, FilterCondition } from '../types.js';
+import { VystaReadonlyService } from './VystaReadonlyService.js';
 
 export interface ServiceConfig<T> {
   primaryKey: keyof T;
 }
 
-export class VystaService<T> implements IDataService<T> {
+export class VystaService<T> extends VystaReadonlyService<T> {
   protected primaryKey: keyof T;
 
   constructor(
-    protected client: VystaClient,
-    protected connection: string,
-    protected entity: string,
+    client: VystaClient,
+    connection: string,
+    entity: string,
     config: ServiceConfig<T>
   ) {
+    super(client, connection, entity);
     this.primaryKey = config.primaryKey;
   }
 
@@ -23,20 +24,6 @@ export class VystaService<T> implements IDataService<T> {
       filters: {
         [this.primaryKey]: { eq: id }
       } as { [K in keyof T]?: FilterCondition }
-    };
-  }
-
-  /**
-   * Retrieves all records matching the optional query parameters
-   * @param params - Optional query parameters for filtering, sorting, and pagination
-   * @returns A promise that resolves to a DataResult containing the records and total count
-   */
-  async getAll(params: QueryParams<T> = {}): Promise<DataResult<T>> {
-    const response = await this.client.get<T>(`${this.connection}/${this.entity}`, params);
-    return {
-      data: response.data as T[],
-      count: response.recordCount ?? -1,
-      error: null
     };
   }
 

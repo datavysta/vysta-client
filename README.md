@@ -63,6 +63,41 @@ const client = new VystaClient({
 
 ### Creating a Service
 
+The library provides two base service classes:
+
+#### VystaReadonlyService
+For read-only data sources that don't support CRUD operations, such as views, aggregations, or reports:
+
+```typescript
+// Define your entity type
+interface CustomerSummary {
+  customerId?: string;
+  count?: number;
+  companyName?: string;
+}
+
+// Create a read-only service for a view/aggregation
+export class CustomerSummaryService extends VystaReadonlyService<CustomerSummary> {
+  constructor(client: VystaClient) {
+    super(client, 'Northwinds', 'CustomerSummary');
+  }
+}
+
+// Use the service for querying
+const summaries = new CustomerSummaryService(client);
+const result = await summaries.getAll({
+  filters: {
+    count: { gt: 0 }
+  },
+  order: {
+    companyName: 'asc'
+  }
+});
+```
+
+#### VystaService
+For full CRUD operations on entities with primary keys:
+
 ```typescript
 // Define your entity type
 interface Product {
@@ -84,30 +119,58 @@ export class ProductService extends VystaService<Product> {
 
 // Initialize the service
 const products = new ProductService(client);
+
+// Use CRUD operations
+const product = await products.getById(1);
+await products.update(1, { unitPrice: 29.99 });
+await products.delete(1);
 ```
 
 ### Query Operations
 
+Both service types support the same querying capabilities:
+
 ```typescript
-// Get all products
-const result = await products.getAll();
-console.log('Products:', result.data);
+// Basic query
+const result = await summaries.getAll();
+console.log('Summaries:', result.data);
 console.log('Total count:', result.count);
 
-// Query with filters and pagination
-const filtered = await products.getAll({
+// Simple filter
+const activeProducts = await products.getAll({
   filters: {
-    unitPrice: { gt: 20 },
-    discontinued: { eq: 0 },
-    category: { eq: 'Beverages' }
+    discontinued: { eq: 0 }
+  }
+});
+
+// Complex query with multiple filters, sorting, and pagination
+const customerReport = await summaries.getAll({
+  // Select specific fields
+  select: ['customerId', 'companyName', 'count'],
+  
+  // Multiple filters
+  filters: {
+    count: { gt: 5 },
+    companyName: { like: '%Ltd%' }
   },
+  
+  // Sort by multiple fields
   order: {
-    unitPrice: 'desc'
+    count: 'desc',
+    companyName: 'asc'
   },
+  
+  // Pagination
   limit: 10,
   offset: 0,
-  recordCount: true  // Include total record count
+  
+  // Include total record count
+  recordCount: true
 });
+
+// Response includes data and total count
+console.log('Matching customers:', customerReport.data.length);
+console.log('Total matches:', customerReport.count);
 ```
 
 ### Query Parameters

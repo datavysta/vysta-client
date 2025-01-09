@@ -1,5 +1,6 @@
 import { VystaClient } from './VystaClient.js';
 import { VystaService } from './base/VystaService.js';
+import { VystaReadonlyService } from './base/VystaReadonlyService.js';
 import { IDataService } from './IDataService.js';
 import type { 
   VystaConfig,
@@ -18,6 +19,7 @@ import type {
 export {
   VystaClient,
   VystaService,
+  VystaReadonlyService,
   IDataService,
   // Types
   VystaConfig,
