@@ -6,7 +6,7 @@ export interface ServiceConfig<T> {
   primaryKey: keyof T;
 }
 
-export class VystaService<T> extends VystaReadonlyService<T> {
+export class VystaService<T, U = T> extends VystaReadonlyService<T, U> {
   protected primaryKey: keyof T;
 
   constructor(
@@ -32,12 +32,13 @@ export class VystaService<T> extends VystaReadonlyService<T> {
    * @param id - The primary key value
    * @returns A promise that resolves to a single record
    */
-  async getById(id: string | number): Promise<T> {
+  async getById(id: string | number): Promise<U> {
     const response = await this.client.get<T>(
       `${this.connection}/${this.entity}`, 
       this.createPkFilter(id)
     );
-    return Array.isArray(response.data) ? response.data[0] : response.data;
+    const row = Array.isArray(response.data) ? response.data[0] : response.data;
+    return this.hydrate(row);
   }
 
   /**
@@ -45,11 +46,12 @@ export class VystaService<T> extends VystaReadonlyService<T> {
    * @param data - The data to create
    * @returns A promise that resolves to the created record
    */
-  async create(data: Partial<T>): Promise<T> {
-    return this.client.post<T>(
+  async create(data: Partial<T>): Promise<U> {
+    const response = await this.client.post<T>(
       `${this.connection}/${this.entity}`, 
       data as T
     );
+    return this.hydrate(response);
   }
 
   /**
