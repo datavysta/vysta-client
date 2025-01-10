@@ -45,7 +45,14 @@
                 { field: 'productId', sortable: true },
                 { field: 'productName', sortable: true, filter: true },
                 { field: 'unitPrice', sortable: true },
-                { field: 'unitsInStock', sortable: true }
+                { field: 'unitsInStock', sortable: true },
+                { 
+                    field: 'totalStockValue', 
+                    sortable: true,
+                    valueFormatter: params => {
+                        return params.value ? `$${params.value.toFixed(2)}` : '';
+                    }
+                }
             ],
             defaultColDef: {
                 flex: 1,
