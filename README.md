@@ -122,6 +122,19 @@ const products = new ProductService(client);
 
 // Use CRUD operations
 const product = await products.getById(1);
+console.log(`Product: ${product.productName}`);
+
+// Query active products
+const activeProducts = await products.getAll({
+  filters: {
+    discontinued: { eq: 0 }
+  },
+  order: {
+    unitPrice: 'desc'
+  }
+});
+
+// Update price and stock levels
 await products.update(1, { unitPrice: 29.99 });
 await products.delete(1);
 ```
@@ -171,6 +184,75 @@ const customerReport = await summaries.getAll({
 // Response includes data and total count
 console.log('Matching customers:', customerReport.data.length);
 console.log('Total matches:', customerReport.count);
+```
+
+### Hydration
+
+Services support hydration to add computed properties to each row by overriding the `hydrate` method:
+
+```typescript
+// Basic example with customer names
+interface Customer {
+  firstName: string;
+  lastName: string;
+}
+
+interface CustomerWithFullName extends Customer {
+  fullName: string;
+}
+
+class CustomerService extends VystaReadonlyService<Customer, CustomerWithFullName> {
+  constructor(client: VystaClient) {
+    super(client, 'Northwinds', 'Customers');
+  }
+
+  protected override hydrate(customer: Customer): CustomerWithFullName {
+    return {
+      ...customer,
+      fullName: `${customer.firstName} ${customer.lastName}`
+    };
+  }
+}
+
+// Advanced example with calculated values
+interface Product {
+  productId: number;
+  productName: string;
+  unitPrice: number;
+  unitsInStock: number;
+  discontinued: number;
+}
+
+interface ProductWithValue extends Product {
+  totalStockValue: number;
+}
+
+class ProductService extends VystaService<Product, ProductWithValue> {
+  constructor(client: VystaClient) {
+    super(client, 'Northwinds', 'Products', {
+      primaryKey: 'productId'
+    });
+  }
+
+  protected override hydrate(product: Product): ProductWithValue {
+    return {
+      ...product,
+      totalStockValue: product.unitPrice * product.unitsInStock
+    };
+  }
+}
+
+// Use hydrated values in queries
+const products = new ProductService(client);
+const expensiveStock = await products.getAll({
+  filters: {
+    totalStockValue: { gt: 1000 },
+    discontinued: { eq: 0 }
+  },
+  order: {
+    totalStockValue: 'desc'
+  }
+});
 ```
 
 ### Query Parameters

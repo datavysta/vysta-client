@@ -2,11 +2,22 @@ import { VystaService } from '../../src/base/VystaService';
 import { VystaClient } from '../../src/VystaClient';
 import { Customer, Order, Product, Supplier } from './types';
 
-export class ProductService extends VystaService<Product> {
+interface ProductWithValue extends Product {
+  totalStockValue: number;
+}
+
+export class ProductService extends VystaService<Product, ProductWithValue> {
   constructor(client: VystaClient) {
     super(client, 'Northwinds', 'Products', {
       primaryKey: 'productId'
     });
+  }
+
+  protected override hydrate(product: Product): ProductWithValue {
+    return {
+      ...product,
+      totalStockValue: (product.unitPrice ?? 0) * (product.unitsInStock ?? 0)
+    };
   }
 }
 
