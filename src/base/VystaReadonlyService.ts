@@ -1,7 +1,8 @@
 import { VystaClient } from '../VystaClient.js';
 import { QueryParams, DataResult } from '../types.js';
+import { IReadonlyDataService } from '../IDataService.js';
 
-export abstract class VystaReadonlyService<T, U = T> {
+export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataService<T, U> {
   constructor(
     protected client: VystaClient,
     protected connection: string,

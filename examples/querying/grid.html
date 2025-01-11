@@ -47,7 +47,8 @@
                 { field: 'unitPrice', sortable: true },
                 { field: 'unitsInStock', sortable: true },
                 { 
-                    field: 'totalStockValue', 
+                    field: '_totalStockValue', 
+                    headerName: 'Total Stock Value',
                     sortable: true,
                     valueFormatter: params => {
                         return params.value ? `$${params.value.toFixed(2)}` : '';

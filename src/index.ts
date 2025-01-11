@@ -1,7 +1,7 @@
 import { VystaClient } from './VystaClient.js';
 import { VystaService } from './base/VystaService.js';
 import { VystaReadonlyService } from './base/VystaReadonlyService.js';
-import { IDataService } from './IDataService.js';
+import { IDataService, IReadonlyDataService } from './IDataService.js';
 import type { 
   VystaConfig,
   QueryParams,
@@ -21,6 +21,7 @@ export {
   VystaService,
   VystaReadonlyService,
   IDataService,
+  IReadonlyDataService,
   // Types
   VystaConfig,
   QueryParams,

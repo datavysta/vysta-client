@@ -190,6 +190,8 @@ console.log('Total matches:', customerReport.count);
 
 Services support hydration to add computed properties to each row by overriding the `hydrate` method:
 
+> **Note:** Vysta recommends prefixing calculated fields with an underscore (_) to distinguish them from persisted fields. This helps exclude them from various operations like updates and filtering.
+
 ```typescript
 // Basic example with customer names
 interface Customer {
@@ -198,7 +200,7 @@ interface Customer {
 }
 
 interface CustomerWithFullName extends Customer {
-  fullName: string;
+  _fullName: string;  // Calculated field prefixed with _
 }
 
 class CustomerService extends VystaReadonlyService<Customer, CustomerWithFullName> {
@@ -209,7 +211,7 @@ class CustomerService extends VystaReadonlyService<Customer, CustomerWithFullNam
   protected override hydrate(customer: Customer): CustomerWithFullName {
     return {
       ...customer,
-      fullName: `${customer.firstName} ${customer.lastName}`
+      _fullName: `${customer.firstName} ${customer.lastName}`
     };
   }
 }
@@ -224,7 +226,7 @@ interface Product {
 }
 
 interface ProductWithValue extends Product {
-  totalStockValue: number;
+  _totalStockValue: number;  // Calculated field prefixed with _
 }
 
 class ProductService extends VystaService<Product, ProductWithValue> {
@@ -237,7 +239,7 @@ class ProductService extends VystaService<Product, ProductWithValue> {
   protected override hydrate(product: Product): ProductWithValue {
     return {
       ...product,
-      totalStockValue: product.unitPrice * product.unitsInStock
+      _totalStockValue: product.unitPrice * product.unitsInStock
     };
   }
 }
@@ -246,11 +248,11 @@ class ProductService extends VystaService<Product, ProductWithValue> {
 const products = new ProductService(client);
 const expensiveStock = await products.getAll({
   filters: {
-    totalStockValue: { gt: 1000 },
+    _totalStockValue: { gt: 1000 },
     discontinued: { eq: 0 }
   },
   order: {
-    totalStockValue: 'desc'
+    _totalStockValue: 'desc'
   }
 });
 ```

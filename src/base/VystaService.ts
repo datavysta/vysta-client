@@ -1,12 +1,13 @@
 import { VystaClient } from '../VystaClient.js';
 import { QueryParams, FilterCondition } from '../types.js';
 import { VystaReadonlyService } from './VystaReadonlyService.js';
+import { IDataService } from '../IDataService.js';
 
 export interface ServiceConfig<T> {
   primaryKey: keyof T;
 }
 
-export class VystaService<T, U = T> extends VystaReadonlyService<T, U> {
+export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implements IDataService<T, U> {
   protected primaryKey: keyof T;
 
   constructor(

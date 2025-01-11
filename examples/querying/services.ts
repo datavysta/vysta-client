@@ -3,7 +3,7 @@ import { VystaClient } from '../../src/VystaClient';
 import { Customer, Order, Product, Supplier } from './types';
 
 interface ProductWithValue extends Product {
-  totalStockValue: number;
+  _totalStockValue: number;
 }
 
 export class ProductService extends VystaService<Product, ProductWithValue> {
@@ -16,7 +16,7 @@ export class ProductService extends VystaService<Product, ProductWithValue> {
   protected override hydrate(product: Product): ProductWithValue {
     return {
       ...product,
-      totalStockValue: (product.unitPrice ?? 0) * (product.unitsInStock ?? 0)
+      _totalStockValue: (product.unitPrice ?? 0) * (product.unitsInStock ?? 0)
     };
   }
 }
