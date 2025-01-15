@@ -1,9 +1,12 @@
 import { VystaClient } from '../../src/VystaClient';
 import { SignInInfo } from '../../src/VystaAuth';
+import { ProductService } from '../querying/services';
 
 const client = new VystaClient({
-  baseUrl: 'http://localhost:8080',
+  baseUrl: 'http://localhost:8080'
 });
+
+const products = new ProductService(client);
 
 // Create and append HTML elements
 const container = document.createElement('div');
@@ -11,6 +14,16 @@ container.innerHTML = `
   <div style="max-width: 400px; margin: 40px auto; padding: 20px;">
     <h2>Authentication Example</h2>
     
+    <!-- Auth Status -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <div id="authStatus" style="flex-grow: 1; padding: 10px; background: #f3f4f6; border-radius: 4px;">
+        Checking authentication status...
+      </div>
+      <button id="logoutButton" style="margin-left: 10px; padding: 10px; background: #ef4444; color: white; border: none; border-radius: 4px; display: none;">
+        Logout
+      </button>
+    </div>
+
     <!-- Password Login Form -->
     <form id="loginForm" style="margin-bottom: 20px;">
       <div style="margin-bottom: 10px;">
@@ -25,14 +38,6 @@ container.innerHTML = `
         Sign in with Password
       </button>
     </form>
-
-    <!-- Test OAuth Redirect -->
-    <div style="margin: 20px 0; padding-top: 20px; border-top: 1px solid #eee;">
-      <h3>Test OAuth Redirect</h3>
-      <button id="testRedirect" style="width: 100%; padding: 10px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 4px;">
-        Simulate OAuth Redirect
-      </button>
-    </div>
 
     <!-- OAuth Providers -->
     <div id="providers" style="display: flex; flex-direction: column; gap: 10px;">
@@ -50,7 +55,7 @@ document.body.appendChild(container);
 const loginForm = document.getElementById('loginForm') as HTMLFormElement;
 const providersContainer = document.getElementById('providers')!;
 const statusDiv = document.getElementById('status')!;
-const testRedirectButton = document.getElementById('testRedirect')!;
+const logoutButton = document.getElementById('logoutButton')!;
 
 // Helper function to show status
 function showStatus(message: string, isError = false) {
@@ -68,6 +73,7 @@ loginForm.addEventListener('submit', async (e) => {
     showStatus('Logging in...');
     const result = await client.login(email, password);
     showStatus(`Logged in successfully! Token: ${result.accessToken.slice(0, 20)}...`);
+    await checkAuthStatus();
   } catch (error) {
     showStatus(`Login failed: ${error instanceof Error ? error.message : String(error)}`, true);
   }
@@ -85,12 +91,11 @@ async function loadProviders() {
       
       button.addEventListener('click', async () => {
         try {
-          showStatus(`Getting authorization URL for ${provider.name}...`);
+          console.log(`[OAuth] Initiating ${provider.name} login...`);
           const url = await client.getAuthorizeUrl(provider.id);
-          showStatus(`Redirecting to ${provider.name}...`);
           window.location.href = url;
         } catch (error) {
-          showStatus(`Failed to get authorization URL: ${error instanceof Error ? error.message : String(error)}`, true);
+          console.error('[OAuth] Failed to get authorize URL:', error);
         }
       });
 
@@ -109,34 +114,47 @@ const redirectUrl = urlParams.get('RedirectUrl');
 if (token) {
   // Handle OAuth redirect
   (async () => {
+    console.log('[OAuth] Processing redirect with token...');
     try {
-      showStatus('Exchanging token...');
       const authResult = await client.exchangeToken(token);
-      showStatus(`OAuth login successful! Token: ${authResult.accessToken.slice(0, 20)}...`);
+      console.log('[OAuth] Token exchange successful');
       
-      // Redirect if URL provided
       if (redirectUrl) {
+        console.log('[OAuth] Redirecting to:', redirectUrl);
         window.location.replace(redirectUrl || '/');
       }
     } catch (error) {
-      showStatus(`Authentication failed: ${error instanceof Error ? error.message : String(error)}`, true);
+      console.error('[OAuth] Token exchange failed:', error);
     }
   })();
 } else {
   // Load providers for initial page load
   loadProviders();
+} 
+
+// Add logout button handler
+logoutButton.addEventListener('click', async () => {
+  await client.logout();
+  await checkAuthStatus();
+  showStatus('Logged out successfully');
+});
+
+// Update check auth status to show/hide logout button and show total count
+async function checkAuthStatus() {
+  const authStatus = document.getElementById('authStatus')!;
+  try {
+    const response = await products.getAll({ recordCount: true });
+    authStatus.textContent = `Authenticated ✓ (${response.count} total products)`;
+    authStatus.style.background = '#dcfce7';
+    authStatus.style.color = '#166534';
+    logoutButton.style.display = 'block';
+  } catch (error) {
+    authStatus.textContent = 'Not authenticated';
+    authStatus.style.background = '#fee2e2';
+    authStatus.style.color = '#991b1b';
+    logoutButton.style.display = 'none';
+  }
 }
 
-// Add the test redirect handler
-testRedirectButton.addEventListener('click', () => {
-  // Simulate the redirect by adding parameters to current URL
-  const testToken = 'test-mock-token';
-  const testRedirectUrl = '/examples/auth/auth.html';
-  
-  const currentUrl = new URL(window.location.href);
-  currentUrl.searchParams.set('Token', testToken);
-  currentUrl.searchParams.set('RedirectUrl', testRedirectUrl);
-  
-  // Update the URL and trigger the redirect handler
-  window.location.href = currentUrl.toString();
-}); 
+// Call it on load and after successful login
+checkAuthStatus(); 

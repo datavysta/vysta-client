@@ -2,6 +2,14 @@
 <html>
 <head>
     <title>Vysta Client Examples</title>
+    <script type="module">
+        // Simple router - handle redirects before any content loads
+        if (window.location.pathname === '/authenticationRedirect') {
+            import('./authenticationRedirect.ts');
+            // Prevent rest of page from loading
+            document.documentElement.style.display = 'none';
+        }
+    </script>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
