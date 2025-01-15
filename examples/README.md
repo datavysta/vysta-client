@@ -55,8 +55,9 @@ npm run dev
 ```
 
 3. Open your browser to:
-- Grid Example: http://localhost:3000/querying/grid.html
-- CRUD Example: http://localhost:3000/crud/products.html
+- Grid Example: http://localhost:5173/querying/grid.html
+- CRUD Example: http://localhost:5173/crud/products.html
+- Auth Example: http://localhost:5173/auth/auth.html
 
 ### Example Files
 
@@ -73,5 +74,7 @@ npm run dev
 The examples expect a Vysta server running at `http://localhost:8080` with:
 - Default credentials: test@datavysta.com / password
 - Database connection named "Northwinds"
+
+Note: The examples run on port 5173 to match Okta's configured redirect URL.
 
 You can modify these settings in the example files as needed. 

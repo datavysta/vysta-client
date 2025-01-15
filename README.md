@@ -355,6 +355,62 @@ The following operators are supported for filtering:
 - `isnull` - Is NULL
 - `isnotnull` - Is Not NULL
 
+## Authentication
+
+### Methods
+
+| Method | Description | Parameters | Returns |
+|--------|-------------|------------|---------|
+| `login` | Authenticates with username/password | `username: string`<br>`password: string` | `Promise<AuthResult>` |
+| `logout` | Logs out and clears auth data | none | `void` |
+| `getSignInMethods` | Gets available OAuth providers | none | `Promise<SignInInfo[]>` |
+| `getAuthorizeUrl` | Gets OAuth authorization URL | `signInId: string` | `Promise<string>` |
+| `exchangeToken` | Exchanges OAuth token for auth result | `token: string` | `Promise<AuthResult>` |
+
+### Types
+
+```typescript
+interface SignInInfo {
+  id: string;    // Provider ID (e.g., 'okta')
+  name: string;  // Display name (e.g., 'Okta')
+}
+
+interface AuthResult {
+  accessToken: string;
+  refreshToken: string;
+  host: string;
+}
+```
+
+### Example Usage
+
+```typescript
+// Password authentication
+const result = await client.login('user@example.com', 'password');
+
+// OAuth authentication
+const providers = await client.getSignInMethods();
+const authUrl = await client.getAuthorizeUrl(providers[0].id);
+// Redirect user to authUrl
+window.location.href = authUrl;
+
+// Handle OAuth redirect
+const urlParams = new URLSearchParams(window.location.search);
+const token = urlParams.get('Token');  // Token parameter name may vary by provider
+const redirectUrl = urlParams.get('RedirectUrl');  // Original redirect URL from provider
+const authResult = await client.exchangeToken(token);
+
+// After successful authentication, redirect to the provided URL or your default
+if (redirectUrl) {
+  window.location.replace(redirectUrl);
+}
+```
+
+> Note: Your application is responsible for handling the OAuth redirect. The provider will return both a token and a redirect URL. 
+> For Okta, the redirect will typically be to `/authenticationRedirect` on your application's domain. After exchanging the token, 
+> you should redirect the user to the provided URL or your application's default location. Both OAuth and password authentication 
+> result in the same authenticated state, allowing you to make API calls with the client.
+
 ## License
 
 MIT
