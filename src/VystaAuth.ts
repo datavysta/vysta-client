@@ -50,6 +50,11 @@ interface JwtWithPrincipal {
   exp?: number;
 }
 
+export interface SignInInfo {
+  id: string;
+  name: string;
+}
+
 /** @internal */
 export class VystaAuth {
   private accessToken: string | null = null;
@@ -215,5 +220,67 @@ export class VystaAuth {
     this.host = null;
     this.principal = null;
     this.storage.clearTokens();
+  }
+
+  async getSignInMethods(): Promise<SignInInfo[]> {
+    const response = await fetch(`${this.baseUrl}/api/auth/signininfos`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch sign-in methods: ${response.statusText}`);
+    }
+    return response.json();
+  }
+
+  async getAuthorizeUrl(signInId: string): Promise<string> {
+    const response = await fetch(`${this.baseUrl}/api/auth/getauthorizeurl/${signInId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain',
+        'Accept': 'text/plain'
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to get authorize URL: ${response.statusText}`);
+    }
+    return response.text();
+  }
+
+  async handleAuthenticationRedirect(token: string): Promise<AuthResult> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/auth/gettoken`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Token exchange failed: ${response.statusText}`);
+      }
+
+      const authResult = await response.json();
+      await this.reinitializeFromAuthenticationResult(authResult);
+      return authResult;
+    } catch (error) {
+      this.errorHandler.onError(error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
+  }
+
+  async exchangeToken(token: string): Promise<AuthResult> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/auth/exchangeSwitchToken/${token}`);
+      
+      if (!response.ok) {
+        throw new Error(`Token exchange failed: ${response.statusText}`);
+      }
+
+      const authResult = await response.json();
+      await this.reinitializeFromAuthenticationResult(authResult);
+      return authResult;
+    } catch (error) {
+      this.errorHandler.onError(error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
   }
 } 

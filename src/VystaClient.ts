@@ -1,4 +1,4 @@
-import { VystaAuth, TokenStorage, AuthErrorHandler } from './VystaAuth.js';
+import { VystaAuth, TokenStorage, AuthErrorHandler, SignInInfo } from './VystaAuth.js';
 import { AuthResult } from './types.js';
 import type { QueryParams, FilterCondition } from './types.js';
 
@@ -208,6 +208,22 @@ export class VystaClient {
     }
 
     return Number(response.headers.get('AffectedRows') || '0');
+  }
+
+  async getSignInMethods(): Promise<SignInInfo[]> {
+    return this.auth.getSignInMethods();
+  }
+
+  async getAuthorizeUrl(signInId: string): Promise<string> {
+    return this.auth.getAuthorizeUrl(signInId);
+  }
+
+  async handleAuthenticationRedirect(token: string): Promise<AuthResult> {
+    return this.auth.handleAuthenticationRedirect(token);
+  }
+
+  async exchangeToken(token: string): Promise<AuthResult> {
+    return this.auth.exchangeToken(token);
   }
 
   private async handleErrorResponse(response: Response, url: string): Promise<never> {

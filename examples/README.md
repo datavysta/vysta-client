@@ -4,6 +4,13 @@ This directory contains example applications demonstrating how to use the Vysta 
 
 ## Examples
 
+### Authentication Example
+A sample application demonstrating:
+- Password-based authentication
+- OAuth provider integration
+- Token handling and storage
+- Redirect handling for OAuth flows
+
 ### Querying Example
 A sample application demonstrating:
 - Authentication
