@@ -139,12 +139,12 @@ logoutButton.addEventListener('click', async () => {
   showStatus('Logged out successfully');
 });
 
-// Update check auth status to show/hide logout button and show total count
+// Update check auth status function
 async function checkAuthStatus() {
   const authStatus = document.getElementById('authStatus')!;
   try {
-    const response = await products.getAll({ recordCount: true });
-    authStatus.textContent = `Authenticated ✓ (${response.count} total products)`;
+    const profile = await client.getUserProfile();
+    authStatus.textContent = `Welcome, ${profile.name}`;
     authStatus.style.background = '#dcfce7';
     authStatus.style.color = '#166534';
     logoutButton.style.display = 'block';

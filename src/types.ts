@@ -67,3 +67,17 @@ export interface VystaResponse<T> {
   status: number;
   message?: string;
 }
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string | null;
+  emailVerifiedOn: string | null;
+  phoneNumber: string | null;
+  phoneNumberVerifiedOn: string | null;
+  apiKeyCreatedOn: string | null;
+  forceChange: boolean;
+  disabled: boolean;
+  properties: any | null;
+  roleId: string;
+}

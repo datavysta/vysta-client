@@ -24,11 +24,9 @@ if (token) {
 
       // Test authentication by making a sample request
       try {
-        const response = await products.getAll({ recordCount: true });
+        const profile = await client.getUserProfile();
         console.log('[OAuth] Authentication test:', 
-          response.data.length > 0 
-            ? `PASSED (${response.count} total products)` 
-            : 'FAILED (no products found)');
+          profile ? `PASSED (Logged in as ${profile.name})` : 'FAILED (no profile found)');
       } catch (error) {
         console.error('[OAuth] Authentication test failed:', error);
       }

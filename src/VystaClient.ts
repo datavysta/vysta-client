@@ -1,6 +1,6 @@
 import { VystaAuth, TokenStorage, AuthErrorHandler, SignInInfo } from './VystaAuth.js';
 import { AuthResult } from './types.js';
-import type { QueryParams, FilterCondition } from './types.js';
+import type { QueryParams, FilterCondition, UserProfile } from './types.js';
 
 export interface GetResponse<T> {
   data: T[];
@@ -224,6 +224,10 @@ export class VystaClient {
 
   async exchangeToken(token: string): Promise<AuthResult> {
     return this.auth.exchangeToken(token);
+  }
+
+  async getUserProfile(): Promise<UserProfile> {
+    return this.auth.getUserProfile();
   }
 
   private async handleErrorResponse(response: Response, url: string): Promise<never> {

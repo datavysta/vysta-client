@@ -366,10 +366,20 @@ The following operators are supported for filtering:
 | `getSignInMethods` | Gets available OAuth providers | none | `Promise<SignInInfo[]>` |
 | `getAuthorizeUrl` | Gets OAuth authorization URL | `signInId: string` | `Promise<string>` |
 | `exchangeToken` | Exchanges OAuth token for auth result | `token: string` | `Promise<AuthResult>` |
+| `getUserProfile` | Gets authenticated user's profile | none | `Promise<UserProfile>` |
 
 ### Types
 
 ```typescript
+interface UserProfile {
+  name: string;
+  email: string | null;
+  emailVerifiedOn: string | null;
+  phoneNumber: string | null;
+  phoneNumberVerifiedOn: string | null;
+  apiKeyCreatedOn: string | null;
+}
+
 interface SignInInfo {
   id: string;    // Provider ID (e.g., 'okta')
   name: string;  // Display name (e.g., 'Okta')

@@ -110,4 +110,23 @@ describe('Authentication', () => {
       }, 15000);
     });
   });
+
+  describe('getUserProfile', () => {
+    it('should fetch user profile when authenticated', async () => {
+      const client = createClient();
+      await loginClient(client);
+      
+      const profile = await client.getUserProfile();
+      
+      expect(profile.name).toBe('Test');
+    });
+
+    it('should fail when not authenticated', async () => {
+      const client = createClient();
+      
+      await expect(client.getUserProfile())
+        .rejects
+        .toThrow();
+    });
+  });
 }); 

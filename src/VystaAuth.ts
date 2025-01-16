@@ -1,5 +1,5 @@
 import { jwtDecode } from 'jwt-decode';
-import { AuthResult, Principal } from './types.js';
+import { AuthResult, Principal, UserProfile } from './types.js';
 
 export enum TokenKey {
   AccessToken = 'accessToken',
@@ -278,6 +278,24 @@ export class VystaAuth {
       const authResult = await response.json();
       await this.reinitializeFromAuthenticationResult(authResult);
       return authResult;
+    } catch (error) {
+      this.errorHandler.onError(error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
+  }
+
+  async getUserProfile(): Promise<UserProfile> {
+    try {
+      const headers = await this.getAuthHeaders();
+      const response = await fetch(`${this.baseUrl}/api/admin/security/userprofile`, {
+        headers
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to get user profile: ${response.statusText}`);
+      }
+
+      return response.json();
     } catch (error) {
       this.errorHandler.onError(error instanceof Error ? error : new Error(String(error)));
       throw error;
