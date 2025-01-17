@@ -6,6 +6,7 @@ interface CustomerSummary {
   customerId?: string;
   count?: number;
   companyName?: string;
+  test: string;
 }
 
 interface HydratedCustomerSummary extends CustomerSummary {
@@ -82,6 +83,26 @@ describe('VystaReadonlyService', () => {
       expect(result.data.length).toBeGreaterThan(0);
       expect(result.data[0]).toHaveProperty('displayName');
       expect(result.data[0].displayName).toBe(`${result.data[0].companyName} (${result.data[0].count} orders)`);
+      expect(result.error).toBeNull();
+    });
+  });
+
+  describe('Input Properties', () => {
+    it('should handle input properties in query params', async () => {
+      const result = await summaries.getAll({
+        inputProperties: {
+          test: 'hello world'
+        }
+      });
+      
+      expect(result.data[0].test).toBe('hello world');
+      expect(result.error).toBeNull();
+    });
+
+    it('should default test column to Empty when not provided', async () => {
+      const result = await summaries.getAll();
+      
+      expect(result.data[0].test).toBe('Empty');
       expect(result.error).toBeNull();
     });
   });
