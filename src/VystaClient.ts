@@ -82,6 +82,12 @@ export class VystaClient {
       queryParts.push(`offset=${params.offset}`);
     }
 
+    if (params.inputProperties) {
+      Object.entries(params.inputProperties).forEach(([key, value]) => {
+        queryParts.push(`${key}=${encodeURIComponent(value)}`);
+      });
+    }
+
     return queryParts.length ? `?${queryParts.join('&')}` : '';
   }
 

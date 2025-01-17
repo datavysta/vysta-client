@@ -60,6 +60,9 @@ export type QueryParams<T> = {
   limit?: number;
   offset?: number;
   recordCount?: boolean;
+  inputProperties?: {
+    [key: string]: string;
+  };
 };
 
 export interface VystaResponse<T> {

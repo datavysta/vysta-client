@@ -12,6 +12,7 @@ import type {
   OrderBy,
   Principal,
   AuthResult,
+  UserProfile,
   VystaResponse,
   DataResult
 } from './types.js';
@@ -32,6 +33,7 @@ export {
   OrderBy,
   Principal,
   AuthResult,
+  UserProfile,
   VystaResponse,
   DataResult
 }; 
