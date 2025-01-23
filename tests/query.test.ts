@@ -16,6 +16,35 @@ describe('Query Operations', () => {
     await authenticateClient(client);
   });
 
+  describe('Basic Operations', () => {
+    it('should get all products', async () => {
+      const allProducts = await products.getAll({
+        recordCount: true
+      });
+
+      // More specific array checks
+      expect(typeof allProducts.data).toBe('object');
+      expect(allProducts.data.constructor.name).toBe('Array');
+      expect(Array.isArray(allProducts.data)).toBe(true);
+      expect(allProducts.data.length).toBeGreaterThan(0);
+      expect(allProducts.count).toBeGreaterThan(0);
+      expect(allProducts.error).toBeNull();
+      
+      // Check first item structure
+      const firstItem = allProducts.data[0];
+      expect(typeof firstItem).toBe('object');
+      expect(firstItem).not.toBeNull();
+    });
+
+    it('should get product by id', async () => {
+      const productId = 1;
+      const product = await products.getById(productId);
+      expect(product).not.toBeNull();
+      expect(product.productId).toBe(productId);
+      expect(typeof product.productName).toBe('string');
+    });
+  });
+
   describe('Comparison Operators', () => {
     it('eq - equals', async () => {
       const result = await products.getAll({
@@ -149,6 +178,40 @@ describe('Query Operations', () => {
       expect(result.data).toEqual([]);
       expect(result.count).toBe(0);
       expect(result.error).toBeNull();
+    });
+  });
+
+  describe('Search Query', () => {
+    it('q - full text search', async () => {
+      const result = await products.getAll({
+        select: ['productId', 'productName'],
+        q: 'chai'
+      });
+      expect(result.data.length).toBeGreaterThan(0);
+      expect(result.data[0].productName.toLowerCase()).toContain('chai');
+    });
+
+    it('q - combines with other filters', async () => {
+      const result = await products.getAll({
+        select: ['productId', 'productName', 'unitPrice'],
+        q: 'tea',
+        filters: {
+          unitPrice: { gt: 9 }
+        }
+      });
+      expect(result.data.length).toBeGreaterThan(0);
+      expect(result.data[0].productName.toLowerCase()).toContain('tea');
+      expect(result.data[0].unitPrice).toBeGreaterThan(9);
+    });
+
+    it('q - returns empty array for non-matching search', async () => {
+      const result = await products.getAll({
+        select: ['productId', 'productName'],
+        q: 'nonexistentproduct123456789',
+        recordCount: true
+      });
+      expect(result.data).toEqual([]);
+      expect(result.count).toBe(0);
     });
   });
 }); 

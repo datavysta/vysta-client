@@ -16,7 +16,7 @@ export class ProductService extends VystaService<Product, ProductWithValue> {
   protected override hydrate(product: Product): ProductWithValue {
     return {
       ...product,
-      _totalStockValue: (product.unitPrice ?? 0) * (product.unitsInStock ?? 0)
+      _totalStockValue: (product?.unitPrice ?? 0) * (product?.unitsInStock ?? 0)
     };
   }
 }

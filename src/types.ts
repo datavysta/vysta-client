@@ -63,6 +63,7 @@ export type QueryParams<T> = {
   inputProperties?: {
     [key: string]: string;
   };
+  q?: string;
 };
 
 export interface VystaResponse<T> {

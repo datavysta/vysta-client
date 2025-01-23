@@ -78,6 +78,10 @@ export class VystaClient {
         queryParts.push('recordCount=true');
     }
 
+    if (params.q) {
+        queryParts.push(`q=${encodeURIComponent(params.q)}`);
+    }
+
     if (params.offset !== undefined) {
       queryParts.push(`offset=${params.offset}`);
     }

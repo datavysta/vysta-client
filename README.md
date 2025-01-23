@@ -266,6 +266,7 @@ The following query parameters are supported:
 - `order`: Object specifying field and direction ('asc' or 'desc')
 - `filter`: Filter expression
 - `recordCount`: Set to true to include total record count in response header
+- `q`: Optional search term for full-text search across relevant fields
 
 Example:
 ```typescript
@@ -276,7 +277,8 @@ const params = {
     productId: 'desc'
   },
   filter: 'category eq "Beverages"',
-  recordCount: true  // Optional: Include total record count
+  recordCount: true,  // Optional: Include total record count
+  q: 'chai'  // Optional: Search for products containing 'chai'
 };
 
 const result = await service.getAll(params);
