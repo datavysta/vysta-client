@@ -31,4 +31,18 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
       error: null
     };
   }
+
+  /**
+   * Queries records using complex conditions in the request body
+   * @param params - Query parameters including conditions to be sent in the request body
+   * @returns A promise that resolves to a DataResult containing the records and total count
+   */
+  async query(params: QueryParams<T> = {}): Promise<DataResult<U>> {
+    const response = await this.client.query<T>(`${this.connection}/${this.entity}`, params);
+    return {
+      data: response.data ? response.data.map(row => this.hydrate(row)) : [],
+      count: response.recordCount ?? -1,
+      error: null
+    };
+  }
 } 

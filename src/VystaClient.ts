@@ -118,9 +118,14 @@ export class VystaClient {
    * @param path - The path to the resource
    * @param params - Optional query parameters
    * @returns A promise that resolves to a GetResponse containing data and optional record count
+   * @throws Error if conditions are used (use query() method instead)
    */
   async get<T>(path: string, params?: QueryParams<T>): Promise<GetResponse<T>> {
     try {
+      if (params?.conditions) {
+        throw new Error('Use query() method for queries with conditions');
+      }
+
       const headers = await this.auth.getAuthHeaders();
       const url = `${this.config.baseUrl}/api/rest/connections/${path}${this.buildQueryString(params)}`;
       
@@ -238,6 +243,42 @@ export class VystaClient {
 
   async getUserProfile(): Promise<UserProfile> {
     return this.auth.getUserProfile();
+  }
+
+  /**
+   * Performs a POST request to query data using query parameters in the request body
+   * @param path - The path to the resource
+   * @param params - Query parameters to be sent in the request body
+   * @returns A promise that resolves to a GetResponse containing data and optional record count
+   */
+  async query<T>(path: string, params?: QueryParams<T>): Promise<GetResponse<T>> {
+    try {
+      const headers = await this.auth.getAuthHeaders();
+      const url = `${this.config.baseUrl}/api/rest/connections/${path}/query`;
+      
+      this.logRequest('POST', url, params);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(params || {})
+      });
+
+      if (!response.ok) {
+        await this.handleErrorResponse(response, url);
+      }
+
+      const data = await response.json();
+      const recordCount = params?.recordCount ? Number(response.headers.get('Recordcount') ?? -1) : undefined;
+
+      return { data, recordCount };
+    } catch (error) {
+      this.log('Request failed:', error);
+      throw error instanceof Error ? error : new Error(String(error));
+    }
   }
 
   private async handleErrorResponse(response: Response, url: string): Promise<never> {

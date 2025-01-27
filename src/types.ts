@@ -63,6 +63,7 @@ export type QueryParams<T> = {
   inputProperties?: {
     [key: string]: string;
   };
+  conditions?: any;
   q?: string;
 };
 

@@ -214,4 +214,62 @@ describe('Query Operations', () => {
       expect(result.count).toBe(0);
     });
   });
+
+  describe('Conditions', () => {
+    it('should query with complex conditions', async () => {
+      const result = await products.query({
+        select: ['productId', 'productName', 'unitsInStock', 'unitsOnOrder'],
+        conditions: [
+          {
+            "id": "e94252f2-8328-4b3b-a704-99cfa4ac7ee8",
+            "type": "Group",
+            "children": [
+              {
+                "id": "5f68e842-e9f8-4f31-924f-1f38c270aa4e",
+                "type": "Expression",
+                "comparisonOperator": "GreaterThan",
+                "children": [],
+                "valid": true,
+                "active": true,
+                "columnName": "unitsInStock",
+                "values": [
+                  "0"
+                ]
+              }
+            ],
+            "valid": true,
+            "values": [],
+            "active": true
+          },
+          {
+            "id": "f7819165-d720-43be-bf5e-104b0a202cf4",
+            "type": "Group",
+            "children": [
+              {
+                "id": "753aaa1e-023e-4283-ac6f-951f06a0fb4e",
+                "type": "Expression",
+                "comparisonOperator": "GreaterThan",
+                "children": [],
+                "valid": true,
+                "active": true,
+                "columnName": "unitsOnOrder",
+                "values": [
+                  "0"
+                ]
+              }
+            ],
+            "valid": true,
+            "values": [],
+            "active": true,
+            "operator": "OR"
+          }
+        ],
+        recordCount: true
+      });
+
+      expect(result.data.length).toBeGreaterThan(0);
+      expect(result.data[0].unitsInStock).toBeGreaterThan(0);
+      expect(result.data.some(p => p.unitsOnOrder && p.unitsOnOrder > 0)).toBe(true);
+    });
+  });
 }); 
