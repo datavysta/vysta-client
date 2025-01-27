@@ -260,10 +260,7 @@ export class VystaClient {
 
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          ...headers,
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify(params || {})
       });
 

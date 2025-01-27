@@ -1,10 +1,12 @@
 import { ProductService, SupplierService } from '../examples/querying/services';
 import { createTestClient, authenticateClient } from './setup';
+import { IReadonlyDataService, IDataService } from '../src/IDataService';
+import { Product, Supplier } from '../examples/querying/types';
 
 describe('Query Operations', () => {
   const client = createTestClient();
-  let products: ProductService;
-  let suppliers: SupplierService;
+  let products: IDataService<Product>;
+  let suppliers: IReadonlyDataService<Supplier>;
 
   beforeAll(async () => {
     await authenticateClient(client);
