@@ -1,6 +1,6 @@
 import { VystaService } from '../../src/base/VystaService';
 import { VystaClient } from '../../src/VystaClient';
-import { Customer, Order, Product, Supplier } from './types';
+import { Customer, Order, Product, Supplier, OrderDetails } from './types';
 
 interface ProductWithValue extends Product {
   _totalStockValue: number;
