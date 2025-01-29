@@ -43,4 +43,12 @@ export class SupplierService extends VystaService<Supplier> {
       primaryKey: 'supplierId'
     });
   }
-} 
+}
+
+export class OrderDetailsService extends VystaService<OrderDetails> {
+  constructor(client: VystaClient) {
+    super(client, 'Northwinds', 'OrderDetails', {
+      primaryKey: ["orderId","productId"]
+    });
+  }
+}

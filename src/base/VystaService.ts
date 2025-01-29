@@ -1,14 +1,14 @@
 import { VystaClient } from '../VystaClient.js';
 import { QueryParams, FilterCondition } from '../types.js';
 import { VystaReadonlyService } from './VystaReadonlyService.js';
-import { IDataService } from '../IDataService.js';
+import { IDataService, PrimaryKeyType } from '../IDataService.js';
 
 export interface ServiceConfig<T> {
-  primaryKey: keyof T;
+  primaryKey: keyof T | Array<keyof T>;
 }
 
 export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implements IDataService<T, U> {
-  protected primaryKey: keyof T;
+  protected primaryKey: keyof T | Array<keyof T>;
 
   constructor(
     client: VystaClient,
@@ -20,7 +20,21 @@ export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implement
     this.primaryKey = config.primaryKey;
   }
 
-  protected createPkFilter(id: string | number): QueryParams<T> {
+  protected createPkFilter(id: PrimaryKeyType<T>): QueryParams<T> {
+    if (Array.isArray(this.primaryKey)) {
+      if (typeof id !== 'object') {
+        throw new Error('Multi-part primary key requires an object with key-value pairs');
+      }
+      const filters = {} as { [K in keyof T]?: FilterCondition };
+      for (const key of this.primaryKey) {
+        if (!(key in id)) {
+          throw new Error(`Missing primary key part: ${String(key)}`);
+        }
+        filters[key] = { eq: id[key as keyof typeof id] };
+      }
+      return { filters };
+    }
+
     return {
       filters: {
         [this.primaryKey]: { eq: id }
@@ -30,10 +44,10 @@ export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implement
 
   /**
    * Retrieves a single record by its primary key
-   * @param id - The primary key value
+   * @param id - The primary key value. For multi-part keys, pass an object with key-value pairs
    * @returns A promise that resolves to a single record
    */
-  async getById(id: string | number): Promise<U> {
+  async getById(id: PrimaryKeyType<T>): Promise<U> {
     const response = await this.client.get<T>(
       `${this.connection}/${this.entity}`, 
       this.createPkFilter(id)
@@ -47,21 +61,21 @@ export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implement
    * @param data - The data to create
    * @returns A promise that resolves to the created record
    */
-  async create(data: Partial<T>): Promise<U> {
+  async create(data: T): Promise<U> {
     const response = await this.client.post<T>(
       `${this.connection}/${this.entity}`, 
-      data as T
+      data
     );
     return this.hydrate(response);
   }
 
   /**
    * Updates a single record by its primary key
-   * @param id - The primary key value
+   * @param id - The primary key value. For multi-part keys, pass an object with key-value pairs
    * @param data - The data to update
    * @returns A promise that resolves to the number of affected rows
    */
-  async update(id: string | number, data: Partial<T>): Promise<number> {
+  async update(id: PrimaryKeyType<T>, data: Partial<T>): Promise<number> {
     return this.client.patch(
       `${this.connection}/${this.entity}`, 
       data,
@@ -85,10 +99,10 @@ export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implement
 
   /**
    * Deletes a single record by its primary key
-   * @param id - The primary key value
+   * @param id - The primary key value. For multi-part keys, pass an object with key-value pairs
    * @returns A promise that resolves to the number of affected rows
    */
-  async delete(id: string | number): Promise<number> {
+  async delete(id: PrimaryKeyType<T>): Promise<number> {
     return this.client.delete(
       `${this.connection}/${this.entity}`,
       this.createPkFilter(id)
