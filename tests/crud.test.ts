@@ -71,7 +71,7 @@ describe('CRUD Operations', () => {
     });
   });
 
-  describe.skip('Update', () => {
+  describe('Update', () => {
     it('should update a product', async () => {
       const updates = {
         productName: 'Updated Test Product',
@@ -107,7 +107,7 @@ describe('CRUD Operations', () => {
     });
   });
 
-  describe.skip('Delete', () => {
+  describe('Delete', () => {
     it('should delete a product', async () => {
       const affected = await products.delete(testProduct.productId);
       expect(affected).toBe(1);

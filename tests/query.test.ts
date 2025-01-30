@@ -100,24 +100,30 @@ describe('Query Operations', () => {
   });
 
   describe('Array Operators', () => {
-    it.skip('in - included in array', async () => {
+    it('in - included in array', async () => {
       const result = await products.getAll({
         select: ['productId', 'categoryId'],
         filters: {
           categoryId: { in: [1, 2] }
         }
       });
-      expect([1, 2]).toContain(result.data[0].categoryId);
+      expect(result.data.length).toBeGreaterThan(0);
+      result.data.forEach(product => {
+        expect([1, 2]).toContain(product.categoryId);
+      });
     });
 
-    it.skip('nin - not included in array', async () => {
+    it('nin - not included in array', async () => {
       const result = await products.getAll({
         select: ['productId', 'categoryId'],
         filters: {
           categoryId: { nin: [1, 2] }
         }
       });
-      expect([1, 2]).not.toContain(result.data[0].categoryId);
+      expect(result.data.length).toBeGreaterThan(0);
+      result.data.forEach(product => {
+        expect([1, 2]).not.toContain(product.categoryId);
+      });
     });
   });
 
