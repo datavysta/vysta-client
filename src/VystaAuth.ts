@@ -130,7 +130,7 @@ export class VystaAuth {
     this.storage.setToken(TokenKey.Principal, JSON.stringify(this.principal));
   }
 
-  async getAuthHeaders(): Promise<HeadersInit> {
+  async getAuthHeaders(acceptType: string = "application/json"): Promise<HeadersInit> {
     try {
       const token = await this.getAuthToken(true);
       if (!token) {
@@ -138,8 +138,9 @@ export class VystaAuth {
       }
 
       return {
-        'authorization': `Bearer ${token}`,
-        'content-type': 'application/json'
+        authorization: `Bearer ${token}`,
+        "content-type": "application/json",
+        accept: acceptType // Dynamically set Accept header
       };
     } catch (error) {
       this.errorHandler.onError(error instanceof Error ? error : new Error(String(error)));

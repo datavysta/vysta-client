@@ -2,6 +2,7 @@ import { ProductService, SupplierService } from '../examples/querying/services';
 import { createTestClient, authenticateClient } from './setup';
 import { IReadonlyDataService, IDataService } from '../src/IDataService';
 import { Product, Supplier } from '../examples/querying/types';
+import {FileType} from "../src/types";
 
 describe('Query Operations', () => {
   const client = createTestClient();
@@ -52,10 +53,10 @@ describe('Query Operations', () => {
       const result = await products.getAll({
         select: ['productId', 'discontinued'],
         filters: {
-          discontinued: { eq: 0 }
+          discontinued: { eq: false }
         }
       });
-      expect(result.data[0].discontinued).toBe(0);
+      expect(result.data[0].discontinued).toBe(false);
     });
 
     it('gt - greater than', async () => {
@@ -137,7 +138,8 @@ describe('Query Operations', () => {
         recordCount: true
       });
       expect(result.count).toBeGreaterThan(0);
-      expect(result.data[0].region).toBeUndefined();
+      expect(result.data[0].region).toBeNull();
+      expect(result.count).toBeDefined();
     });
 
     it('isnotnull - is not null', async () => {
@@ -189,6 +191,39 @@ describe('Query Operations', () => {
     });
   });
 
+  describe('Search Query Alises', () => {
+    it('q - select alias', async () => {
+      const result = await products.getAll({
+        select: {"productId": "id", "productName": "name", "unitPrice": "price"},
+        q: 'tea',
+        filters: {
+          unitPrice: { gt: 9 }
+        }
+      });
+      expect(result.data.length).toBeGreaterThan(0);
+      const row: any = result.data[0];
+      expect(row.name.toLowerCase()).toContain('tea');
+      expect(row.price).toBeGreaterThan(9);
+    });
+  });
+
+  describe('Search Query Alises', () => {
+    it('select alias', async () => {
+      const result = await products.getAll({
+        select: {"productId": "id", "productName": "name", "unitPrice": "price"},
+        q: 'tea',
+        filters: {
+          unitPrice: { gt: 9 }
+        }
+      });
+      expect(result.data.length).toBeGreaterThan(0);
+      const row: any = result.data[0];
+      expect(row.id).toBeDefined()
+      expect(row.name.toLowerCase()).toContain('tea');
+      expect(row.price).toBeGreaterThan(9);
+    });
+  });
+
   describe('Search Query', () => {
     it('q - full text search', async () => {
       const result = await products.getAll({
@@ -197,6 +232,16 @@ describe('Query Operations', () => {
       });
       expect(result.data.length).toBeGreaterThan(0);
       expect(result.data[0].productName.toLowerCase()).toContain('chai');
+    });
+
+    it('q - returns empty array for non-matching search', async () => {
+      const result = await products.getAll({
+        select: ['productId', 'productName'],
+        q: 'nonexistentproduct123456789',
+        recordCount: true
+      });
+      expect(result.data).toEqual([]);
+      expect(result.count).toBe(0);
     });
 
     it('q - combines with other filters', async () => {
@@ -220,6 +265,24 @@ describe('Query Operations', () => {
       });
       expect(result.data).toEqual([]);
       expect(result.count).toBe(0);
+    });
+  });
+
+  describe('Download', () => {
+    it('csv', async () => {
+      const result = await products.download({
+        select: ['productId', 'productName', 'unitsInStock', 'unitsOnOrder']
+      }, FileType.CSV);
+        const length = result.size;
+        expect(length).toBeGreaterThan(0)
+    });
+
+    it('excel', async () => {
+      const result = await products.download({
+        select: ['productId', 'productName', 'unitsInStock', 'unitsOnOrder']
+      }, FileType.EXCEL);
+      const length = result.size;
+      expect(length).toBeGreaterThan(0)
     });
   });
 
@@ -277,7 +340,7 @@ describe('Query Operations', () => {
 
       expect(result.data.length).toBeGreaterThan(0);
       expect(result.data[0].unitsInStock).toBeGreaterThan(0);
-      expect(result.data.some(p => p.unitsOnOrder && p.unitsOnOrder > 0)).toBe(true);
+      expect(result.data[0].unitsOnOrder).toBeGreaterThan(0);
     });
   });
 }); 

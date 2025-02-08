@@ -1,6 +1,6 @@
-import { VystaAuth, TokenStorage, AuthErrorHandler, SignInInfo } from './VystaAuth.js';
-import { AuthResult } from './types.js';
-import type { QueryParams, FilterCondition, UserProfile } from './types.js';
+import {AuthErrorHandler, SignInInfo, TokenStorage, VystaAuth} from './VystaAuth.js';
+import type {FilterCondition, QueryParams, UserProfile} from './types.js';
+import {AuthResult, FileType} from './types.js';
 
 export interface GetResponse<T> {
   data: T[];
@@ -47,8 +47,15 @@ export class VystaClient {
 
     const queryParts: string[] = [];
 
-    if (params.select && params.select.length) {
-      queryParts.push(`select=${params.select.join(',')}`);
+    if (params.select && Object.keys(params.select).length) {
+      if (Array.isArray(params.select)) {
+        queryParts.push(`select=${params.select.join(',')}`);
+      } else {
+        const mappedSelect = Object.entries(params.select)
+            .map(([key, value]) => `${key}=${value}`)
+            .join(',');
+        queryParts.push(`select=${mappedSelect}`);
+      }
     }
 
     if (params.filters) {
@@ -128,7 +135,7 @@ export class VystaClient {
 
       const headers = await this.auth.getAuthHeaders();
       const url = `${this.config.baseUrl}/api/rest/connections/${path}${this.buildQueryString(params)}`;
-      
+
       this.logRequest('GET', url);
 
       const response = await fetch(url, {
@@ -159,7 +166,7 @@ export class VystaClient {
   async post<T>(path: string, data: T): Promise<T> {
     const headers = await this.auth.getAuthHeaders();
     const url = `${this.config.baseUrl}/api/rest/connections/${path}`;
-    
+
     this.logRequest('POST', url, data);
 
     const response = await fetch(url, {
@@ -185,7 +192,7 @@ export class VystaClient {
   async patch<T>(path: string, data: Partial<T>, params?: QueryParams<T>): Promise<number> {
     const headers = await this.auth.getAuthHeaders();
     const url = `${this.config.baseUrl}/api/rest/connections/${path}${this.buildQueryString(params)}`;
-    
+
     this.logRequest('PATCH', url, data);
 
     const response = await fetch(url, {
@@ -210,7 +217,7 @@ export class VystaClient {
   async delete(path: string, params?: QueryParams<any>): Promise<number> {
     const headers = await this.auth.getAuthHeaders();
     const url = `${this.config.baseUrl}/api/rest/connections/${path}${this.buildQueryString(params)}`;
-    
+
     this.logRequest('DELETE', url);
 
     const response = await fetch(url, {
@@ -246,34 +253,77 @@ export class VystaClient {
   }
 
   /**
-   * Performs a POST request to query data using query parameters in the request body
+   * Performs a POST request to query data using query parameters in the request body.
+   * Supports both JSON data retrieval and file downloads.
    * @param path - The path to the resource
    * @param params - Query parameters to be sent in the request body
-   * @returns A promise that resolves to a GetResponse containing data and optional record count
+   * @returns A promise that resolves to either a GetResponse containing data or a Blob for file downloads
    */
-  async query<T>(path: string, params?: QueryParams<T>): Promise<GetResponse<T>> {
+  async query<T>(
+      path: string,
+      params?: QueryParams<T>
+  ): Promise<GetResponse<T>> {
     try {
       const headers = await this.auth.getAuthHeaders();
+
       const url = `${this.config.baseUrl}/api/rest/connections/${path}/query`;
-      
-      this.logRequest('POST', url, params);
+      this.logRequest("POST", url, params);
 
       const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers,
-        body: JSON.stringify(params || {})
+        body: JSON.stringify(params || {}),
       });
 
       if (!response.ok) {
         await this.handleErrorResponse(response, url);
       }
 
+      // Handle JSON response
       const data = await response.json();
-      const recordCount = params?.recordCount ? Number(response.headers.get('Recordcount') ?? -1) : undefined;
+      const recordCount = params?.recordCount
+          ? Number(response.headers.get("Recordcount") ?? -1)
+          : undefined;
 
       return { data, recordCount };
     } catch (error) {
-      this.log('Request failed:', error);
+      this.log("Request failed:", error);
+      throw error instanceof Error ? error : new Error(String(error));
+    }
+  }
+
+  /**
+   * Performs a POST request to query data using query parameters in the request body.
+   * Supports both JSON data retrieval and file downloads.
+   * @param path - The path to the resource
+   * @param params - Query parameters to be sent in the request body
+   * @param fileType - Optional FileType to specify response format (CSV, or Excel)
+   * @returns A promise that resolves to either a GetResponse containing data or a Blob for file downloads
+   */
+  async download(
+      path: string,
+      params?: QueryParams<any>,
+      fileType: FileType = FileType.CSV
+  ): Promise<Blob> {
+    try {
+      const headers = await this.auth.getAuthHeaders(fileType);
+
+      const url = `${this.config.baseUrl}/api/rest/connections/${path}/query`;
+      this.logRequest("POST", url, params);
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(params || {}),
+      });
+
+      if (!response.ok) {
+        await this.handleErrorResponse(response, url);
+      }
+
+      return await response.blob(); // Return Blob for file downloads
+    } catch (error) {
+      this.log("Request failed:", error);
       throw error instanceof Error ? error : new Error(String(error));
     }
   }

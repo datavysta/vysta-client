@@ -1,4 +1,4 @@
-import { QueryParams, DataResult } from './types.js';
+import {DataResult, FileType, QueryParams} from './types.js';
 
 export type PrimaryKeyType<T = any> = string | number | {
   [K in keyof T]?: string | number;
@@ -7,6 +7,7 @@ export type PrimaryKeyType<T = any> = string | number | {
 export interface IReadonlyDataService<T, U = T> {
     getAll(params?: QueryParams<T>): Promise<DataResult<U>>;
     query(params?: QueryParams<T>): Promise<DataResult<U>>;
+    download(params?: QueryParams<T>, fileType?: FileType): Promise<Blob>;
 }
 
 export interface IDataService<T, U = T> extends IReadonlyDataService<T, U> {

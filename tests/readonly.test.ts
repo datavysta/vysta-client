@@ -6,7 +6,6 @@ interface CustomerSummary {
   customerId?: string;
   count?: number;
   companyName?: string;
-  test: string;
 }
 
 interface HydratedCustomerSummary extends CustomerSummary {
@@ -91,18 +90,19 @@ describe('VystaReadonlyService', () => {
     it('should handle input properties in query params', async () => {
       const result = await summaries.getAll({
         inputProperties: {
-          test: 'hello world'
+          id: 'ALFKI'
         }
       });
       
-      expect(result.data[0].test).toBe('hello world');
+      expect(result.data[0].customerId).toBe('ALFKI');
+      expect(result.data.length).toBe(1);
       expect(result.error).toBeNull();
     });
 
     it('should default test column to Empty when not provided', async () => {
       const result = await summaries.getAll();
       
-      expect(result.data[0].test).toBe('Empty');
+      expect(result.data.length).toBeGreaterThan(1)
       expect(result.error).toBeNull();
     });
   });

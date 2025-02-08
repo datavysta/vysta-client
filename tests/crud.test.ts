@@ -31,6 +31,7 @@ describe('CRUD Operations', () => {
     it('should create a new product with ID 78', async () => {
       // First verify product doesn't exist
       const initialCheck = await products.getAll({
+        select: { productId: "productNo" },
         filters: { productId: { eq: 78 } }
       });
       expect(initialCheck.data.length).toBe(0);
@@ -41,7 +42,7 @@ describe('CRUD Operations', () => {
         productName: 'Test Product',
         unitPrice: 29.99,
         unitsInStock: 100,
-        discontinued: 0
+        discontinued: false
       };
 
       await products.create(newProduct);
@@ -88,14 +89,14 @@ describe('CRUD Operations', () => {
 
     it('should update multiple products', async () => {
       const affected = await products.updateWhere(
-        { filters: { discontinued: { eq: 0 } } },
+        { filters: { discontinued: { eq: false } } },
         { unitsInStock: 0 }
       );
       expect(affected).toBeGreaterThan(0);
 
       const result = await products.getAll({
         filters: {
-          discontinued: { eq: 0 },
+          discontinued: { eq: false },
           unitsInStock: { eq: 0 }
         }
       });
@@ -109,12 +110,19 @@ describe('CRUD Operations', () => {
 
   describe('Delete', () => {
     it('should delete a product', async () => {
-      const affected = await products.delete(testProduct.productId);
+      const newProduct: Product = {
+        productId: 986,
+        productName: 'Porsche Boxster'
+      };
+      await products.create(newProduct);
+      const deleteMe = await products.getById(newProduct.productId);
+      expect(deleteMe.productId).toBe(newProduct.productId);
+      const affected = await products.delete(newProduct.productId);
       expect(affected).toBe(1);
       
       const result = await products.getAll({
         filters: {
-          productId: { eq: testProduct.productId }
+          productId: { eq: newProduct.productId }
         }
       });
       
@@ -124,8 +132,8 @@ describe('CRUD Operations', () => {
     it('should delete multiple products', async () => {
       // Create test products
       const testProducts = await Promise.all([
-        products.create({ productId: 200, productName: 'Test 1', unitPrice: 1234.56, discontinued: 1 }),
-        products.create({ productId: 201, productName: 'Test 2', unitPrice: 1234.56, discontinued: 1 })
+        products.create({ productId: 200, productName: 'Test 1', unitPrice: 1234.56, discontinued: true }),
+        products.create({ productId: 201, productName: 'Test 2', unitPrice: 1234.56, discontinued: true })
       ]);
 
       // Delete all discontinued products

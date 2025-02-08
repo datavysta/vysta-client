@@ -229,7 +229,7 @@
                     productName: document.getElementById('productName').value,
                     unitPrice: parseFloat(document.getElementById('unitPrice').value),
                     unitsInStock: parseInt(document.getElementById('unitsInStock').value),
-                    discontinued: 0
+                    discontinued: false
                 };
 
                 await products.create(formData);

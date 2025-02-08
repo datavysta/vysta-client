@@ -105,7 +105,7 @@ interface Product {
   productName: string;
   unitPrice: number;
   unitsInStock: number;
-  discontinued: number;
+  discontinued: boolean;
 }
 
 // Create a service class for your entity
@@ -127,7 +127,7 @@ console.log(`Product: ${product.productName}`);
 // Query active products
 const activeProducts = await products.getAll({
   filters: {
-    discontinued: { eq: 0 }
+    discontinued: { eq: false }
   },
   order: {
     unitPrice: 'desc'
@@ -152,7 +152,7 @@ console.log('Total count:', result.count);
 // Simple filter
 const activeProducts = await products.getAll({
   filters: {
-    discontinued: { eq: 0 }
+    discontinued: { eq: false }
   }
 });
 
@@ -184,6 +184,26 @@ const customerReport = await summaries.getAll({
 // Response includes data and total count
 console.log('Matching customers:', customerReport.data.length);
 console.log('Total matches:', customerReport.count);
+```
+
+### **Download Operations**
+
+The `download` method allows you to download data in CSV or Excel formats based on query parameters.
+
+```typescript
+// Download CSV file
+const csvBlob = await summaries.download({
+  filters: {
+    discontinued: { eq: false }
+  }
+}, FileType.CSV);
+
+// Download Excel file
+const excelBlob = await summaries.download({
+  filters: {
+    discontinued: { eq: false }
+  }
+}, FileType.EXCEL);
 ```
 
 ### Hydration
@@ -222,7 +242,7 @@ interface Product {
   productName: string;
   unitPrice: number;
   unitsInStock: number;
-  discontinued: number;
+  discontinued: boolean;
 }
 
 interface ProductWithValue extends Product {
@@ -249,7 +269,7 @@ const products = new ProductService(client);
 const expensiveStock = await products.getAll({
   filters: {
     _totalStockValue: { gt: 1000 },
-    discontinued: { eq: 0 }
+    discontinued: { eq: false }
   },
   order: {
     _totalStockValue: 'desc'
@@ -267,6 +287,11 @@ The following query parameters are supported:
 - `filter`: Filter expression
 - `recordCount`: Set to true to include total record count in response header
 - `q`: Optional search term for full-text search across relevant fields
+- `select`: Specifies which fields to include in the response. Can be used in multiple ways:
+    - As an array: `select=id,name`
+    - As an object mapping field names to custom labels: `select=id=no,name=label`
+    - You can mix and match both formats: `select=id,name=label`
+    - The order in which fields appear in `select` determines their order in the response.
 
 Example:
 ```typescript
@@ -317,7 +342,7 @@ const newProduct = await products.create({
   productName: 'New Product',
   unitPrice: 29.99,
   unitsInStock: 100,
-  discontinued: 0
+  discontinued: false
 });
 
 // Update
@@ -331,12 +356,12 @@ await products.delete(78);
 
 // Bulk operations
 await products.updateWhere(
-  { filters: { discontinued: { eq: 0 } } },
+  { filters: { discontinued: { eq: false } } },
   { unitsInStock: 0 }
 );
 
 await products.deleteWhere({
-  filters: { discontinued: { eq: 1 } }
+  filters: { discontinued: { eq: true } }
 });
 ```
 

@@ -1,6 +1,6 @@
-import { VystaClient } from '../VystaClient.js';
-import { QueryParams, DataResult } from '../types.js';
-import { IReadonlyDataService } from '../IDataService.js';
+import {VystaClient} from '../VystaClient.js';
+import {DataResult, FileType, QueryParams} from '../types.js';
+import {IReadonlyDataService} from '../IDataService.js';
 
 export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataService<T, U> {
   constructor(
@@ -45,4 +45,11 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
       error: null
     };
   }
-} 
+
+  async download(params: QueryParams<T> = {}, fileType: FileType = FileType.CSV): Promise<Blob> {
+    const response = await this.client.download(`${this.connection}/${this.entity}`, params, fileType);
+
+    return response;
+  }
+
+}

@@ -41,6 +41,11 @@ export type FilterOperator =
 
 export type SortDirection = 'asc' | 'desc';
 
+export enum FileType {
+  CSV = "text/csv",
+  EXCEL = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+}
+
 export type FilterValue = string | number | boolean | Array<string | number>;
 
 export type FilterCondition = {
@@ -52,7 +57,7 @@ export type OrderBy<T> = {
 };
 
 export type QueryParams<T> = {
-  select?: Array<keyof T>;
+  select?: { [K in keyof T]?: string; } | Array<keyof T>;
   filters?: {
     [K in keyof T]?: FilterCondition;
   };
