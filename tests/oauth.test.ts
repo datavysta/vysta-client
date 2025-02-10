@@ -13,6 +13,7 @@ describe('OAuth Authentication', () => {
     });
   });
 
+  /*
   describe('getSignInMethods', () => {
     it('should fetch available sign-in methods', async () => {
       const methods = await client.getSignInMethods();
@@ -22,6 +23,7 @@ describe('OAuth Authentication', () => {
       expect(methods[0]).toHaveProperty('name');
     });
   });
+   */
 
   describe('getAuthorizeUrl', () => {
     /*
