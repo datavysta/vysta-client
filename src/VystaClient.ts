@@ -17,7 +17,6 @@ export interface VystaConfig {
 export class VystaClient {
   private auth: VystaAuth;
   private debug: boolean;
-  private readonly BASE_API_PATH = '/api/rest/connections/';
 
   constructor(private config: VystaConfig) {
     this.debug = config.debug || false;
@@ -103,50 +102,6 @@ export class VystaClient {
     return queryParts.length ? `?${queryParts.join('&')}` : '';
   }
 
-  private buildUrl(path: string, params?: QueryParams<any>): string {
-    return `${this.config.baseUrl}${this.BASE_API_PATH}${path}${this.buildQueryString(params)}`;
-  }
-
-  private async makeRequest<T>(
-    method: string,
-    path: string,
-    options: {
-      params?: QueryParams<any>;
-      body?: any;
-      acceptType?: string;
-      isQuery?: boolean;
-    } = {}
-  ): Promise<{ data: T; headers: Headers }> {
-    try {
-      const { params, body, acceptType, isQuery } = options;
-      const headers = await this.auth.getAuthHeaders(acceptType);
-      const url = this.buildUrl(isQuery ? `${path}/query` : path, params);
-
-      this.logRequest(method, url, body);
-
-      const response = await fetch(url, {
-        method,
-        headers,
-        ...(body && { body: JSON.stringify(body) })
-      });
-
-      if (!response.ok) {
-        await this.handleErrorResponse(response, url);
-      }
-
-      const responseText = await response.text();
-      const data = responseText ? JSON.parse(responseText) : [];
-      return { data, headers: response.headers };
-    } catch (error) {
-      this.log('Request failed:', error);
-      throw error instanceof Error ? error : new Error(String(error));
-    }
-  }
-
-  private getRecordCount(headers: Headers, params?: QueryParams<any>): number | undefined {
-    return params?.recordCount ? Number(headers.get('Recordcount') ?? -1) : undefined;
-  }
-
   /**
    * Authenticates a user with the Vysta API
    * @param username - The user's email address
@@ -173,15 +128,33 @@ export class VystaClient {
    * @throws Error if conditions are used (use query() method instead)
    */
   async get<T>(path: string, params?: QueryParams<T>): Promise<GetResponse<T>> {
-    if (params?.conditions) {
-      throw new Error('Use query() method for queries with conditions');
-    }
+    try {
+      if (params?.conditions) {
+        throw new Error('Use query() method for queries with conditions');
+      }
 
-    const { data, headers } = await this.makeRequest<T[]>('GET', path, { params });
-    return { 
-      data,
-      recordCount: this.getRecordCount(headers, params)
-    };
+      const headers = await this.auth.getAuthHeaders();
+      const url = `${this.config.baseUrl}/api/rest/connections/${path}${this.buildQueryString(params)}`;
+
+      this.logRequest('GET', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers
+      });
+
+      if (!response.ok) {
+        await this.handleErrorResponse(response, url);
+      }
+
+      const data = await response.json();
+      const recordCount = params?.recordCount ? Number(response.headers.get('Recordcount') ?? -1) : undefined;
+
+      return { data, recordCount };
+    } catch (error) {
+      this.log('Request failed:', error);
+      throw error instanceof Error ? error : new Error(String(error));
+    }
   }
 
   /**
@@ -191,8 +164,22 @@ export class VystaClient {
    * @returns A promise that resolves to the created item
    */
   async post<T>(path: string, data: T): Promise<T> {
-    const { data: responseData } = await this.makeRequest<T>('POST', path, { body: data });
-    return responseData;
+    const headers = await this.auth.getAuthHeaders();
+    const url = `${this.config.baseUrl}/api/rest/connections/${path}`;
+
+    this.logRequest('POST', url, data);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      await this.handleErrorResponse(response, url);
+    }
+
+    return response.json();
   }
 
   /**
@@ -203,8 +190,22 @@ export class VystaClient {
    * @returns A promise that resolves to the number of affected rows
    */
   async patch<T>(path: string, data: Partial<T>, params?: QueryParams<T>): Promise<number> {
-    const { headers } = await this.makeRequest('PATCH', path, { params, body: data });
-    return Number(headers.get('AffectedRows') || '0');
+    const headers = await this.auth.getAuthHeaders();
+    const url = `${this.config.baseUrl}/api/rest/connections/${path}${this.buildQueryString(params)}`;
+
+    this.logRequest('PATCH', url, data);
+
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      await this.handleErrorResponse(response, url);
+    }
+
+    return Number(response.headers.get('AffectedRows') || '0');
   }
 
   /**
@@ -214,8 +215,21 @@ export class VystaClient {
    * @returns A promise that resolves to the number of affected rows
    */
   async delete(path: string, params?: QueryParams<any>): Promise<number> {
-    const { headers } = await this.makeRequest('DELETE', path, { params });
-    return Number(headers.get('AffectedRows') || '0');
+    const headers = await this.auth.getAuthHeaders();
+    const url = `${this.config.baseUrl}/api/rest/connections/${path}${this.buildQueryString(params)}`;
+
+    this.logRequest('DELETE', url);
+
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers
+    });
+
+    if (!response.ok) {
+      await this.handleErrorResponse(response, url);
+    }
+
+    return Number(response.headers.get('AffectedRows') || '0');
   }
 
   async getSignInMethods(): Promise<SignInInfo[]> {
@@ -245,20 +259,37 @@ export class VystaClient {
    * @param params - Query parameters to be sent in the request body
    * @returns A promise that resolves to either a GetResponse containing data or a Blob for file downloads
    */
-  async query<T>(path: string, params?: QueryParams<T>): Promise<GetResponse<T>> {
-    const { data, headers } = await this.makeRequest<T[]>(
-      'POST',
-      path,
-      { 
-        body: params || {},
-        isQuery: true
+  async query<T>(
+      path: string,
+      params?: QueryParams<T>
+  ): Promise<GetResponse<T>> {
+    try {
+      const headers = await this.auth.getAuthHeaders();
+
+      const url = `${this.config.baseUrl}/api/rest/connections/${path}/query`;
+      this.logRequest("POST", url, params);
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(params || {}),
+      });
+
+      if (!response.ok) {
+        await this.handleErrorResponse(response, url);
       }
-    );
-    
-    return { 
-      data,
-      recordCount: this.getRecordCount(headers, params)
-    };
+
+      // Handle JSON response
+      const data = await response.json();
+      const recordCount = params?.recordCount
+          ? Number(response.headers.get("Recordcount") ?? -1)
+          : undefined;
+
+      return { data, recordCount };
+    } catch (error) {
+      this.log("Request failed:", error);
+      throw error instanceof Error ? error : new Error(String(error));
+    }
   }
 
   /**
@@ -269,37 +300,40 @@ export class VystaClient {
    * @param fileType - Optional FileType to specify response format (CSV, or Excel)
    * @returns A promise that resolves to either a GetResponse containing data or a Blob for file downloads
    */
-  async download(path: string, params?: QueryParams<any>, fileType: FileType = FileType.CSV): Promise<Blob> {
-    const headers = await this.auth.getAuthHeaders(fileType);
-    const url = this.buildUrl(`${path}/query`);
-    
-    this.logRequest('POST', url, params);
+  async download(
+      path: string,
+      params?: QueryParams<any>,
+      fileType: FileType = FileType.CSV
+  ): Promise<Blob> {
+    try {
+      const headers = await this.auth.getAuthHeaders(fileType);
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(params || {})
-    });
+      const url = `${this.config.baseUrl}/api/rest/connections/${path}/query`;
+      this.logRequest("POST", url, params);
 
-    if (!response.ok) {
-      await this.handleErrorResponse(response, url);
+      const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(params || {}),
+      });
+
+      if (!response.ok) {
+        await this.handleErrorResponse(response, url);
+      }
+
+      return await response.blob(); // Return Blob for file downloads
+    } catch (error) {
+      this.log("Request failed:", error);
+      throw error instanceof Error ? error : new Error(String(error));
     }
-
-    return response.blob();
   }
 
   private async handleErrorResponse(response: Response, url: string): Promise<never> {
-    const contentType = response.headers.get('content-type');
-    let error;
-    if (contentType && contentType.includes('application/json')) {
-      error = await response.json();
-    } else {
-      error = await response.text();
-    }
-    const errorMessage = `Request failed: ${response.status} ${response.statusText}\nURL: ${url}\nResponse: ${JSON.stringify(error)}`;
+    const responseText = await response.text();
+    const error = `Request failed: ${response.status} ${response.statusText}\nURL: ${url}\nResponse: ${responseText}`;
     if (this.debug) {
-      console.error('[VystaClient]', errorMessage);
+      console.error('[VystaClient]', error);
     }
-    throw new Error(errorMessage);
+    throw new Error(error);
   }
 } 
