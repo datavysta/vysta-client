@@ -451,3 +451,40 @@ if (redirectUrl) {
 ## License
 
 MIT
+
+### Workflow Services
+
+For executing workflows, extend the `VystaWorkflowService` base class:
+
+```typescript
+import { VystaClient, VystaWorkflowService } from '@datavysta/vysta-client';
+
+// Define workflow input types
+export interface InputTestInput {
+    test: string;
+}
+
+// Create a workflow service
+export class WorkflowService extends VystaWorkflowService {
+    constructor(client: VystaClient) {
+        super(client);
+    }
+
+    async inputTest(input: InputTestInput): Promise<void> {
+        return this.executeWorkflow<InputTestInput, void>('InputTest', input);
+    }
+
+    async plainWait(): Promise<void> {
+        return this.executeWorkflow('PlainWait');
+    }
+}
+
+// Use the workflow service
+const workflows = new WorkflowService(client);
+
+// Execute workflow with input
+await workflows.inputTest({ test: 'example' });
+
+// Execute workflow without input
+await workflows.plainWait();
+```

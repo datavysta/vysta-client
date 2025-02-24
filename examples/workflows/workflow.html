@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vysta Workflow Example</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .log-container {
+            margin-top: 2rem;
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        .log-entry {
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+        }
+        .log-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .log-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .log-info {
+            background: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background: #0066cc;
+            color: white;
+            cursor: pointer;
+            margin-right: 0.5rem;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+    <script type="module">
+        import { VystaClient } from '../../src/VystaClient';
+        import { WorkflowService } from './services.ts';
+
+        // Initialize client
+        const client = new VystaClient({
+            baseUrl: 'http://localhost:8080',
+            debug: true
+        });
+
+        // Initialize workflow service
+        const workflows = new WorkflowService(client);
+
+        // UI elements
+        const logContainer = document.getElementById('logs');
+        const runButton = document.getElementById('runWorkflows');
+
+        function addLog(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = message;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // Login and execute workflows
+        async function init() {
+            try {
+                runButton.disabled = true;
+                addLog('Logging in...', 'info');
+                await client.login('test@datavysta.com', 'password');
+                addLog('Logged in successfully', 'success');
+                runButton.disabled = false;
+            } catch (error) {
+                addLog(`Login failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function runWorkflows() {
+            try {
+                runButton.disabled = true;
+
+                // Execute workflow with input
+                addLog('Running input test workflow...', 'info');
+                await workflows.inputTest({ test: 'example input' });
+                addLog('Input test workflow completed successfully', 'success');
+
+                // Execute workflow without input
+                addLog('Running plain wait workflow...', 'info');
+                await workflows.plainWait();
+                addLog('Plain wait workflow completed successfully', 'success');
+            } catch (error) {
+                addLog(`Workflow error: ${error.message}`, 'error');
+            } finally {
+                runButton.disabled = false;
+            }
+        }
+
+        // Initialize and expose run function
+        init();
+        window.runWorkflows = runWorkflows;
+    </script>
+</head>
+<body>
+    <h1>Vysta Workflow Example</h1>
+    <button id="runWorkflows" onclick="runWorkflows()">Run Workflows</button>
+    <div id="logs" class="log-container"></div>
+</body>
+</html> 

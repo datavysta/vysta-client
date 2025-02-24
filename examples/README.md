@@ -21,6 +21,12 @@ A sample application demonstrating:
 - AG Grid integration with server-side row model
 - Total record count tracking
 
+### Workflow Example
+A sample application demonstrating:
+- Workflow execution
+- Input/output type handling
+- Async workflow operations
+
 ### Response Types
 
 The `getAll()` method returns a `DataResult<T>` object:
@@ -58,6 +64,7 @@ npm run dev
 - Grid Example: http://localhost:5173/querying/grid.html
 - CRUD Example: http://localhost:5173/crud/products.html
 - Auth Example: http://localhost:5173/auth/auth.html
+- Workflow Example: http://localhost:5173/workflows/workflow.html
 
 ### Example Files
 
@@ -66,6 +73,10 @@ npm run dev
   - Implements server-side sorting and filtering
   - Demonstrates efficient data loading with pagination
 - `crud/products.html` - Product management with CRUD operations
+- `workflows/workflow.html` - Workflow execution example
+  - Demonstrates workflow service usage
+  - Shows input/output type handling
+  - Includes async workflow operations
 - `services.ts` - Service definitions for entities
 - `types.ts` - TypeScript interfaces for data schema
 
@@ -77,4 +88,4 @@ The examples expect a Vysta server running at `http://localhost:8080` with:
 
 Note: The examples run on port 5173 to match Okta's configured redirect URL.
 
-You can modify these settings in the example files as needed. 
+You can modify these settings in the example files as needed.
