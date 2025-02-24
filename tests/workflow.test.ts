@@ -11,8 +11,8 @@ class TestWorkflowService extends VystaWorkflowService {
         super(client);
     }
 
-    async inputTest(input: TestInput): Promise<void> {
-        return this.executeWorkflow<TestInput, void>('InputTest', input);
+    async inputTest(input: TestInput): Promise<any> {
+        return this.executeWorkflow<TestInput, any>('InputTest', input);
     }
 
     async plainWait(): Promise<void> {
@@ -36,7 +36,8 @@ describe('VystaWorkflowService', () => {
     describe('Workflow Operations', () => {
         it('should execute workflow with input', async () => {
             const input = { test: 'test value' };
-            await expect(workflows.inputTest(input)).resolves.not.toThrow();
+            const results = await workflows.inputTest(input);
+            await expect(results.message).toBe("Hi test value")
         }, 10000);
 
         it('should execute workflow without input', async () => {
