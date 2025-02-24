@@ -306,16 +306,7 @@ describe('Query Operations', () => {
                 "values": [
                   "0"
                 ]
-              }
-            ],
-            "valid": true,
-            "values": [],
-            "active": true
-          },
-          {
-            "id": "f7819165-d720-43be-bf5e-104b0a202cf4",
-            "type": "Group",
-            "children": [
+              },
               {
                 "id": "753aaa1e-023e-4283-ac6f-951f06a0fb4e",
                 "type": "Expression",
@@ -327,12 +318,22 @@ describe('Query Operations', () => {
                 "values": [
                   "0"
                 ]
+              },
+              {
+                "id": "753aaa1e-023e-4283-ac6f-951f06a0fb4e",
+                "type": "Expression",
+                "comparisonOperator": "IsNotNull",
+                "children": [],
+                "valid": true,
+                "active": true,
+                "columnName": "productName",
+                "values": [
+                ]
               }
             ],
             "valid": true,
             "values": [],
-            "active": true,
-            "operator": "OR"
+            "active": true
           }
         ],
         recordCount: true

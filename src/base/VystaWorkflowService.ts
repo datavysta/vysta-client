@@ -22,6 +22,16 @@ export abstract class VystaWorkflowService {
             throw new Error(`Workflow failed: ${response.statusText}`);
         }
 
-        return response.json();
+        // Read response as text first
+        const text = await response.text();
+
+        // Check if the response body is empty
+        if (!text) {
+            // Return an empty object or handle as needed
+            return {} as TOutput;
+        }
+
+        // Parse JSON if not empty
+        return JSON.parse(text) as TOutput;
     }
-} 
+}
