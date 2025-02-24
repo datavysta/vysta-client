@@ -1,6 +1,7 @@
 import { VystaClient } from './VystaClient.js';
 import { VystaService } from './base/VystaService.js';
 import { VystaReadonlyService } from './base/VystaReadonlyService.js';
+import { VystaWorkflowService } from './base/VystaWorkflowService.js';
 import { IDataService, IReadonlyDataService } from './IDataService.js';
 import { FileType } from './types.js';
 import type { 
@@ -22,6 +23,7 @@ export {
   VystaClient,
   VystaService,
   VystaReadonlyService,
+  VystaWorkflowService,
   IDataService,
   IReadonlyDataService,
   FileType,
