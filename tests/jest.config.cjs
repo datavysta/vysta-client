@@ -1,6 +1,6 @@
 /** @type {import('jest').Config} */
 module.exports = {
-  preset: 'ts-jest',
+  preset: 'ts-jest/presets/js-with-ts-esm',
   testEnvironment: 'jsdom',
   rootDir: '..',
   testMatch: [
@@ -16,7 +16,11 @@ module.exports = {
   extensionsToTreatAsEsm: ['.ts'],
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
-      useESM: true
+      useESM: true,
+      tsconfig: 'tests/tsconfig.json'
     }]
-  }
+  },
+  transformIgnorePatterns: [
+    '/node_modules/(?!(@uppy|preact)/)'
+  ]
 }; 

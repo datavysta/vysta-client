@@ -42,6 +42,24 @@ export class VystaClient {
     }
   }
 
+  /**
+   * Gets the full URL for a path
+   * @param path - The path to append to the base URL
+   * @returns The full URL
+   */
+  getFullUrl(path: string): string {
+    return `${this.config.baseUrl}/${path}`;
+  }
+
+  /**
+   * Gets a non-API URL (for TUS endpoint)
+   * @param path - The path to append to the base URL without /api
+   * @returns The full URL without /api
+   */
+  getNonApiUrl(path: string): string {
+    return `${this.config.baseUrl.replace('/api', '')}/${path}`;
+  }
+
   private buildQueryString(params?: QueryParams<any>): string {
     if (!params) return '';
 

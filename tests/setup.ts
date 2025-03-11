@@ -1,6 +1,6 @@
 import fetch from 'cross-fetch';
-import { VystaClient } from '../src/VystaClient';
-import { AuthResult } from '../src/types';
+import { VystaClient } from '../src/VystaClient.js';
+import { AuthResult } from '../src/types.js';
 
 // Add fetch to global scope for tests
 global.fetch = fetch;

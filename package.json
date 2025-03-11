@@ -27,10 +27,13 @@
     "build": "tsc",
     "prepare": "npm run build",
     "prepublishOnly": "npm test",
-    "test": "jest -c tests/jest.config.cjs",
-    "test:watch": "jest -c tests/jest.config.cjs --watch"
+    "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest -c tests/jest.config.cjs",
+    "test:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest -c tests/jest.config.cjs --watch"
   },
   "dependencies": {
+    "@uppy/core": "^4.4.2",
+    "@uppy/dashboard": "^4.3.2",
+    "@uppy/tus": "^4.2.2",
     "cross-fetch": "^4.0.0",
     "jwt-decode": "^4.0.0"
   },

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VystaFileService with Uppy Dashboard</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Uppy CSS -->
+  <link href="https://releases.transloadit.com/uppy/v3.3.1/uppy.min.css" rel="stylesheet">
+  
+  <!-- Uppy JS (all plugins included) -->
+  <script type="module">
+    import { Uppy, Dashboard, Tus } from "https://releases.transloadit.com/uppy/v3.3.1/uppy.min.mjs";
+    window.Uppy = Uppy;
+    window.Dashboard = Dashboard;
+    window.Tus = Tus;
+  </script>
+  
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .container {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+    .success {
+      color: green;
+      margin-top: 10px;
+    }
+    .file-info {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 4px;
+    }
+    .uppy-Dashboard {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>VystaFileService with Uppy Dashboard</h1>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    // Import the required modules from the library
+    import { VystaClient, VystaFileService } from '../../src/index.js';
+
+    // Configuration for the client
+    const TEST_CONFIG = {
+      baseUrl: 'http://localhost:8080/api',
+      debug: true
+    };
+    
+    // Create a React component that uses the VystaFileService with Uppy Dashboard
+    const FileUploaderWithDashboard = () => {
+      const [error, setError] = React.useState(null);
+      const [success, setSuccess] = React.useState(null);
+      const [uppy, setUppy] = React.useState(null);
+      const [uploadedFile, setUploadedFile] = React.useState(null);
+      const [dashboardOpen, setDashboardOpen] = React.useState(false);
+      
+      const client = React.useMemo(() => new VystaClient(TEST_CONFIG), []);
+      const fileService = React.useMemo(() => new VystaFileService(client, 'localhost JP'), [client]);
+      
+      React.useEffect(() => {
+        // Initialize client
+        const initClient = async () => {
+          try {
+            await client.login('test@datavysta.com', 'password');
+          } catch (err) {
+            console.error("Error logging in:", err);
+            setError(`Failed to login: ${err.message}`);
+          }
+        };
+        
+        initClient();
+      }, [client]);
+      
+      React.useEffect(() => {
+        // Initialize Uppy when component mounts
+        const initUppy = async () => {
+          try {
+            const uppyInstance = await fileService.createUppy({
+              allowedFileTypes: ['.jpg', '.jpeg', '.png', '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.log']
+            });
+            
+            // Add Dashboard plugin
+            uppyInstance.use(window.Dashboard, {
+              inline: false,
+              target: 'body',
+              showProgressDetails: true,
+              proudlyDisplayPoweredByUppy: false,
+              height: 470,
+              metaFields: [
+                { id: 'name', name: 'Name', placeholder: 'File name' }
+              ]
+            });
+            
+            // Add event listeners
+            uppyInstance.on('upload-success', (file, response) => {
+              handleUploadSuccess(file, response);
+            });
+            
+            uppyInstance.on('upload-error', (file, error) => {
+              setError(`Upload failed: ${error.message}`);
+              setDashboardOpen(false);
+            });
+            
+            uppyInstance.on('dashboard:modal-closed', () => {
+              setDashboardOpen(false);
+            });
+            
+            setUppy(uppyInstance);
+          } catch (err) {
+            console.error("Error initializing Uppy:", err);
+            setError(`Failed to initialize Uppy: ${err.message}`);
+          }
+        };
+        
+        // Wait for Uppy to be available
+        const checkUppyLoaded = () => {
+          if (window.Uppy && window.Dashboard && window.Tus) {
+            initUppy();
+          } else {
+            setTimeout(checkUppyLoaded, 100);
+          }
+        };
+        
+        checkUppyLoaded();
+        
+        // Clean up when component unmounts
+        return () => {
+          if (uppy) {
+            uppy.close();
+          }
+        };
+      }, [fileService]);
+      
+      const handleUploadSuccess = async (file, response) => {
+        try {
+          // Use the file ID directly from the TUS event
+          const fileId = file.id;
+          
+          if (!fileId) {
+            setError('No file ID available');
+            setDashboardOpen(false);
+            return;
+          }
+          
+          // Register the uploaded file
+          const result = await fileService.registerUploadedFile({
+            path: '/',
+            id: fileId,
+            name: file.name
+          });
+          
+          if (result.success) {
+            setSuccess(`File ${file.name} uploaded successfully!`);
+            setUploadedFile(result.data);
+          } else {
+            setError(`Failed to register file: ${result.error.message}`);
+          }
+          
+          // Close the dashboard
+          setDashboardOpen(false);
+        } catch (err) {
+          setError(`Error: ${err.message}`);
+          setDashboardOpen(false);
+        }
+      };
+      
+      const openDashboard = () => {
+        // Reset status
+        setError(null);
+        setSuccess(null);
+        
+        // Open the dashboard
+        if (uppy) {
+          uppy.getPlugin('Dashboard').openModal();
+          setDashboardOpen(true);
+        }
+      };
+      
+      return (
+        <div className="container">
+          <h2>File Upload with Uppy Dashboard</h2>
+          <p>
+            This example demonstrates how to use the VystaFileService with Uppy's Dashboard UI.
+            The service handles the TUS protocol for resumable uploads and registers
+            the file with the server.
+          </p>
+          
+          <button 
+            className="uppy-u-reset uppy-c-btn uppy-c-btn-primary"
+            onClick={openDashboard}
+            disabled={!uppy}
+            style={{ padding: '10px 15px', fontSize: '14px' }}
+          >
+            {dashboardOpen ? 'Uploading...' : 'Open Uppy Dashboard'}
+          </button>
+          
+          {error && <div className="error">{error}</div>}
+          {success && <div className="success">{success}</div>}
+          
+          {uploadedFile && (
+            <div className="file-info">
+              <h3>Uploaded File</h3>
+              <p><strong>Name:</strong> {uploadedFile.name}</p>
+              <p><strong>Path:</strong> {uploadedFile.path}</p>
+              <p><strong>Size:</strong> {uploadedFile.size} bytes</p>
+              <p><strong>ID:</strong> {uploadedFile.id}</p>
+              <p><strong>Modified:</strong> {new Date(uploadedFile.modifiedOn).toLocaleString()}</p>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // Render the component
+    ReactDOM.createRoot(document.getElementById('root')).render(<FileUploaderWithDashboard />);
+  </script>
+</body>
+</html> 
