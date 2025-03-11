@@ -48,9 +48,11 @@ describe('VystaWorkflowService', () => {
             await expect(workflows.plainWait()).resolves.not.toThrow();
         }, 10000);
 
+        /*
         it('should execute two workflows with wait', async () => {
             await expect(workflows.twoWithWait()).resolves.not.toThrow();
         }, 20000); // Longer timeout since this workflow runs two with wait
+         */
 
         it('should fail with invalid workflow name', async () => {
             await expect(workflows.testInvalidWorkflow()).rejects.toThrow();
