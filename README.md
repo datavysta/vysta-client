@@ -365,6 +365,50 @@ await products.deleteWhere({
 });
 ```
 
+### File Upload Service
+
+The `VystaFileService` provides file upload capabilities using TUS protocol:
+
+```typescript
+import { VystaClient, VystaFileService } from '@datavysta/vysta-client';
+import Uppy from '@uppy/core';
+import Tus from '@uppy/tus';
+
+// Create a file service
+export class NorthwindFileService extends VystaFileService {
+  constructor(client: VystaClient) {
+    super(client, 'NorthwindFile');
+  }
+}
+
+// Initialize the service
+const northwindFileService = new NorthwindFileService(client);
+
+// Create an Uppy instance for file upload
+const uppy = new Uppy()
+  .use(Tus, {
+    ...(await northwindFileService.getTusXhrOptions())
+  });
+
+// Handle file upload
+uppy.on('upload-success', async (file, response) => {
+  // Register the uploaded file with Vysta
+  await northwindFileService.registerUploadedFile({
+    path: '/',
+    id: file.id,
+    name: file.name
+  });
+});
+
+// Add files and start upload
+uppy.addFile({
+  name: 'product-image.jpg',
+  type: 'image/jpeg',
+  data: new Blob(['file contents'])
+});
+uppy.upload();
+```
+
 ## Query Operators
 
 The following operators are supported for filtering:

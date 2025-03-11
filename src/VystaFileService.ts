@@ -41,6 +41,13 @@ export interface TusUploadOptions {
   allowedFileTypes?: string[] | null;
 }
 
+export interface TusXhrOptions {
+  endpoint: string;
+  headers: {
+    Authorization: string;
+  };
+}
+
 /**
  * Service for handling file operations with the Vysta API
  */
@@ -53,11 +60,12 @@ export class VystaFileService {
    * Creates a new VystaFileService
    * @param client - The VystaClient instance to use for API calls
    * @param fileSystemName - The name of the file system to use
+   * @param debug - Whether to log debug messages
    */
-  constructor(client: VystaClient, fileSystemName: string) {
+  constructor(client: VystaClient, fileSystemName: string, debug: boolean = false) {
     this.client = client;
     this.fileSystemName = fileSystemName;
-    this.debug = true;
+    this.debug = debug;
   }
 
   /**
@@ -79,8 +87,8 @@ export class VystaFileService {
    * Gets the TUS endpoint URL
    * @returns The TUS endpoint URL
    */
-  async getTusEndpoint(): Promise<string> {
-    const endpoint = this.client.getNonApiUrl('admin/filesystem/filesystem/uploadfile/');
+  private async getTusEndpoint(): Promise<string> {
+    const endpoint = this.client.getBackendUrl('admin/filesystem/filesystem/uploadfile');
     this.log(`Using TUS endpoint: ${endpoint}`);
     return endpoint;
   }
@@ -93,12 +101,11 @@ export class VystaFileService {
   async createUppy(options?: TusUploadOptions): Promise<any> {
     // Get the TUS endpoint if not provided
     const endpoint = options?.endpoint || await this.getTusEndpoint();
-    this.log(`Using TUS endpoint: ${endpoint}`);
-    
+
     // Create an Uppy instance
     const uppy = new Uppy({
       id: 'file-upload',
-      autoProceed: false,
+      autoProceed: true,
       allowMultipleUploadBatches: false,
       debug: this.debug,
       restrictions: {
@@ -141,43 +148,21 @@ export class VystaFileService {
     try {
       const { path, id, name } = params;
       
-      // Construct the API path
       const apiPath = `admin/filesystem/filesystem/${encodeURIComponent(this.fileSystemName)}/upload`;
       this.log(`Registering file with API path: ${apiPath}`);
       
-      // Prepare query parameters
-      const queryParams = {
-        inputProperties: {
-          path,
-          id,
-          name
-        }
-      };
-      
-      this.log(`Registering uploaded file with params:`, queryParams);
-      
-      // Make the request using the client
       this.log(`Sending POST request to register file...`);
       
-      // Use getNonApiUrl to get the correct URL
-      const url = this.client.getNonApiUrl(apiPath);
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(queryParams)
+      const data = await this.client.adminRequest<FileUploadResponse>('POST', apiPath, {
+        path,
+        id,
+        name
       });
       
-      if (!response.ok) {
-        throw new Error(`Request failed: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
       this.log(`Received register file response:`, data);
       
       return {
-        data: data as FileUploadResponse,
+        data,
         error: null,
         success: true
       };
@@ -250,5 +235,21 @@ export class VystaFileService {
       this.log(`Error uploading file with Tus: ${error}`);
       return null;
     }
+  }
+
+  /**
+   * Gets the TUS XHR options with authentication headers
+   * @returns A promise that resolves to TUS XHR options
+   */
+  async getTusXhrOptions(): Promise<TusXhrOptions> {
+    const endpoint = await this.getTusEndpoint();
+    const headers = await this.client['auth'].getAuthHeaders();
+    
+    return {
+      endpoint,
+      headers: {
+        Authorization: (headers as Record<string, string>)['authorization']
+      }
+    };
   }
 }
