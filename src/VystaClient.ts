@@ -42,6 +42,18 @@ export class VystaClient {
     }
   }
 
+  /**
+   * Gets the full URL for a backend path
+   * @param path - The path to append to the base URL
+   * @returns The full URL
+   */
+  getBackendUrl(path: string): string {
+    if (path.startsWith('api/')) {
+      return `${this.config.baseUrl}/${path}`;
+    }
+    return `${this.config.baseUrl}/api/${path}`;
+  }
+
   private buildQueryString(params?: QueryParams<any>): string {
     if (!params) return '';
 
@@ -134,7 +146,7 @@ export class VystaClient {
       }
 
       const headers = await this.auth.getAuthHeaders();
-      const url = `${this.config.baseUrl}/api/rest/connections/${path}${this.buildQueryString(params)}`;
+      const url = this.getBackendUrl(`rest/connections/${path}${this.buildQueryString(params)}`);
 
       this.logRequest('GET', url);
 
@@ -165,7 +177,7 @@ export class VystaClient {
    */
   async post<T>(path: string, data: T): Promise<T> {
     const headers = await this.auth.getAuthHeaders();
-    const url = `${this.config.baseUrl}/api/rest/connections/${path}`;
+    const url = this.getBackendUrl(`rest/connections/${path}`);
 
     this.logRequest('POST', url, data);
 
@@ -191,7 +203,7 @@ export class VystaClient {
    */
   async patch<T>(path: string, data: Partial<T>, params?: QueryParams<T>): Promise<number> {
     const headers = await this.auth.getAuthHeaders();
-    const url = `${this.config.baseUrl}/api/rest/connections/${path}${this.buildQueryString(params)}`;
+    const url = this.getBackendUrl(`rest/connections/${path}${this.buildQueryString(params)}`);
 
     this.logRequest('PATCH', url, data);
 
@@ -216,7 +228,7 @@ export class VystaClient {
    */
   async delete(path: string, params?: QueryParams<any>): Promise<number> {
     const headers = await this.auth.getAuthHeaders();
-    const url = `${this.config.baseUrl}/api/rest/connections/${path}${this.buildQueryString(params)}`;
+    const url = this.getBackendUrl(`rest/connections/${path}${this.buildQueryString(params)}`);
 
     this.logRequest('DELETE', url);
 
@@ -265,8 +277,8 @@ export class VystaClient {
   ): Promise<GetResponse<T>> {
     try {
       const headers = await this.auth.getAuthHeaders();
+      const url = this.getBackendUrl(`rest/connections/${path}/query`);
 
-      const url = `${this.config.baseUrl}/api/rest/connections/${path}/query`;
       this.logRequest("POST", url, params);
 
       const response = await fetch(url, {
@@ -279,7 +291,6 @@ export class VystaClient {
         await this.handleErrorResponse(response, url);
       }
 
-      // Handle JSON response
       const data = await response.json();
       const recordCount = params?.recordCount
           ? Number(response.headers.get("Recordcount") ?? -1)
@@ -307,8 +318,8 @@ export class VystaClient {
   ): Promise<Blob> {
     try {
       const headers = await this.auth.getAuthHeaders(fileType);
+      const url = this.getBackendUrl(`rest/connections/${path}/query`);
 
-      const url = `${this.config.baseUrl}/api/rest/connections/${path}/query`;
       this.logRequest("POST", url, params);
 
       const response = await fetch(url, {
@@ -321,7 +332,7 @@ export class VystaClient {
         await this.handleErrorResponse(response, url);
       }
 
-      return await response.blob(); // Return Blob for file downloads
+      return await response.blob();
     } catch (error) {
       this.log("Request failed:", error);
       throw error instanceof Error ? error : new Error(String(error));
@@ -335,5 +346,41 @@ export class VystaClient {
       console.error('[VystaClient]', error);
     }
     throw new Error(error);
+  }
+
+  /**
+   * Performs a request to admin APIs that use query parameters
+   * @param method - The HTTP method to use
+   * @param path - The path to the resource (without /api prefix)
+   * @param queryParams - Query parameters to append to the URL
+   * @returns A promise that resolves to the response data
+   */
+  async adminRequest<T>(method: string, path: string, queryParams?: Record<string, string>): Promise<T> {
+    try {
+      const queryString = queryParams ? 
+        '?' + Object.entries(queryParams)
+          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+          .join('&') 
+        : '';
+
+      const url = this.getBackendUrl(`${path}${queryString}`);
+      const headers = await this.auth.getAuthHeaders();
+
+      this.logRequest(method, url);
+
+      const response = await fetch(url, {
+        method,
+        headers
+      });
+
+      if (!response.ok) {
+        await this.handleErrorResponse(response, url);
+      }
+
+      return response.json();
+    } catch (error) {
+      this.log('Request failed:', error);
+      throw error instanceof Error ? error : new Error(String(error));
+    }
   }
 } 

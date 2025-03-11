@@ -1,6 +1,6 @@
 {
   "name": "@datavysta/vysta-client",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "description": "TypeScript client for Vysta APIs",
   "type": "module",
   "main": "dist/index.js",
@@ -26,17 +26,20 @@
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
-    "prepublishOnly": "npm test",
-    "test": "jest -c tests/jest.config.cjs",
-    "test:watch": "jest -c tests/jest.config.cjs --watch"
+    "prepublishOnly": "if [ \"$SKIP_TESTS\" != \"true\" ]; then npm test; fi",
+    "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest -c tests/jest.config.cjs",
+    "test:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest -c tests/jest.config.cjs --watch"
   },
   "dependencies": {
+    "@uppy/dashboard": "^4.3.2",
     "cross-fetch": "^4.0.0",
     "jwt-decode": "^4.0.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "@types/node": "^20.10.6",
+    "@uppy/core": "^4.4.2",
+    "@uppy/tus": "^4.2.2",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "ts-jest": "^29.1.1",
