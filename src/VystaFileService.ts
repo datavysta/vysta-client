@@ -88,7 +88,7 @@ export class VystaFileService {
    * @returns The TUS endpoint URL
    */
   private async getTusEndpoint(): Promise<string> {
-    const endpoint = this.client.getBackendUrl('admin/filesystem/filesystem/uploadfile');
+    const endpoint = this.client.getBackendUrl('rest/filesystem/uploadfile');
     this.log(`Using TUS endpoint: ${endpoint}`);
     return endpoint;
   }
@@ -148,7 +148,7 @@ export class VystaFileService {
     try {
       const { path, id, name } = params;
       
-      const apiPath = `admin/filesystem/filesystem/${encodeURIComponent(this.fileSystemName)}/upload`;
+      const apiPath = `rest/filesystem/${encodeURIComponent(this.fileSystemName)}/upload`;
       this.log(`Registering file with API path: ${apiPath}`);
       
       this.log(`Sending POST request to register file...`);
