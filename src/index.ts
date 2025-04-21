@@ -5,6 +5,8 @@ import { VystaWorkflowService } from './base/VystaWorkflowService.js';
 import { VystaFileService } from './VystaFileService.js';
 import { IDataService, IReadonlyDataService } from './IDataService.js';
 import { FileType } from './types.js';
+import { VystaAuth, TokenStorage, AuthErrorHandler } from './VystaAuth.js';
+
 import type { 
   VystaConfig,
   QueryParams,
@@ -54,5 +56,9 @@ export {
   FileUploadResponse,
   FileUploadParams,
   FileResult,
-  TusUploadOptions
+  TusUploadOptions,
+  // Auth
+  VystaAuth,
+  TokenStorage,
+  AuthErrorHandler
 }; 
