@@ -1,14 +1,16 @@
 import { VystaClient } from '../VystaClient.js';
-import { QueryParams, FilterCondition } from '../types.js';
+import { QueryParams, FilterCondition, DataResult, FileType } from '../types.js';
 import { VystaReadonlyService } from './VystaReadonlyService.js';
 import { IDataService, PrimaryKeyType } from '../IDataService.js';
 
 export interface ServiceConfig<T> {
   primaryKey: keyof T | Array<keyof T>;
+  basePath?: string;
 }
 
 export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implements IDataService<T, U> {
   protected primaryKey: keyof T | Array<keyof T>;
+  protected basePath: string;
 
   constructor(
     client: VystaClient,
@@ -18,6 +20,7 @@ export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implement
   ) {
     super(client, connection, entity);
     this.primaryKey = config.primaryKey;
+    this.basePath = config.basePath ?? 'rest/connections';
   }
 
   protected createPkFilter(id: PrimaryKeyType<T>): QueryParams<T> {
@@ -48,10 +51,7 @@ export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implement
    * @returns A promise that resolves to a single record
    */
   async getById(id: PrimaryKeyType<T>): Promise<U> {
-    const response = await this.client.get<T>(
-      `${this.connection}/${this.entity}`, 
-      this.createPkFilter(id)
-    );
+    const response = await this.client.get<T>(this.buildPath(''), this.createPkFilter(id));
     const row = Array.isArray(response.data) ? response.data[0] : response.data;
     return this.hydrate(row);
   }
@@ -62,10 +62,7 @@ export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implement
    * @returns A promise that resolves to the created record
    */
   async create(data: T): Promise<U> {
-    const response = await this.client.post<T>(
-      `${this.connection}/${this.entity}`, 
-      data
-    );
+    const response = await this.client.post<T>(this.buildPath(''), data);
     return this.hydrate(response);
   }
 
@@ -76,11 +73,7 @@ export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implement
    * @returns A promise that resolves to the number of affected rows
    */
   async update(id: PrimaryKeyType<T>, data: Partial<T>): Promise<number> {
-    return this.client.patch(
-      `${this.connection}/${this.entity}`, 
-      data,
-      this.createPkFilter(id)
-    );
+    return this.client.patch(this.buildPath(''), data, this.createPkFilter(id));
   }
 
   /**
@@ -90,11 +83,7 @@ export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implement
    * @returns A promise that resolves to the number of affected rows
    */
   async updateWhere(params: QueryParams<T>, data: Partial<T>): Promise<number> {
-    return this.client.patch(
-      `${this.connection}/${this.entity}`, 
-      data,
-      params
-    );
+    return this.client.patch(this.buildPath(''), data, params);
   }
 
   /**
@@ -103,10 +92,7 @@ export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implement
    * @returns A promise that resolves to the number of affected rows
    */
   async delete(id: PrimaryKeyType<T>): Promise<number> {
-    return this.client.delete(
-      `${this.connection}/${this.entity}`,
-      this.createPkFilter(id)
-    );
+    return this.client.delete(this.buildPath(''), this.createPkFilter(id));
   }
 
   /**
@@ -115,9 +101,6 @@ export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implement
    * @returns A promise that resolves to the number of affected rows
    */
   async deleteWhere(params: QueryParams<T>): Promise<number> {
-    return this.client.delete(
-      `${this.connection}/${this.entity}`,
-      params
-    );
+    return this.client.delete(this.buildPath(''), params);
   }
 } 
