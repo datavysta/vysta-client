@@ -150,17 +150,13 @@ export class VystaFileService {
       
       const apiPath = `rest/filesystem/${encodeURIComponent(this.fileSystemName)}/upload`;
       this.log(`Registering file with API path: ${apiPath}`);
-      
       this.log(`Sending POST request to register file...`);
-      
-      const data = await this.client.adminRequest<FileUploadResponse>('POST', apiPath, {
+      const data = await this.client.post<any>(apiPath, {
         path,
         id,
         name
       });
-      
       this.log(`Received register file response:`, data);
-      
       return {
         data,
         error: null,

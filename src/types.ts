@@ -91,3 +91,18 @@ export interface UserProfile {
   properties: any | null;
   roleId: string;
 }
+
+// Canonical object-level permission model for use across the codebase
+export interface ObjectPermission {
+  id: string;
+  children: ObjectPermission[];
+  where: any;
+  grants: string[];
+}
+
+// Role model for use with the admin role endpoint
+export interface Role {
+  id: string;
+  name: string;
+  description?: string;
+}

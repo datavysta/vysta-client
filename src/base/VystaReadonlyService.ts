@@ -3,11 +3,22 @@ import {DataResult, FileType, QueryParams} from '../types.js';
 import {IReadonlyDataService} from '../IDataService.js';
 
 export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataService<T, U> {
+  protected basePath: string;
+
   constructor(
     protected client: VystaClient,
     protected connection: string,
-    protected entity: string
-  ) {}
+    protected entity: string,
+    basePath: string = 'rest/connections'
+  ) {
+    this.basePath = basePath;
+  }
+
+  protected buildPath(path: string = ''): string {
+    const base = this.basePath ? `${this.basePath}/` : '';
+    const fullPath = `${base}${this.connection}/${this.entity}${path ? '/' + path : ''}`;
+    return fullPath;
+  }
 
   /**
    * Override this method to hydrate each row with additional computed properties
@@ -24,7 +35,7 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
    * @returns A promise that resolves to a DataResult containing the records and total count
    */
   async getAll(params: QueryParams<T> = {}): Promise<DataResult<U>> {
-    const response = await this.client.get<T>(`${this.connection}/${this.entity}`, params);
+    const response = await this.client.get<T>(this.buildPath(), params);
     return {
       data: response.data ? response.data.map(row => this.hydrate(row)) : [],
       count: response.recordCount ?? -1,
@@ -38,7 +49,7 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
    * @returns A promise that resolves to a DataResult containing the records and total count
    */
   async query(params: QueryParams<T> = {}): Promise<DataResult<U>> {
-    const response = await this.client.query<T>(`${this.connection}/${this.entity}`, params);
+    const response = await this.client.query<T>(this.buildPath(), params);
     return {
       data: response.data ? response.data.map(row => this.hydrate(row)) : [],
       count: response.recordCount ?? -1,
@@ -47,9 +58,7 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
   }
 
   async download(params: QueryParams<T> = {}, fileType: FileType = FileType.CSV): Promise<Blob> {
-    const response = await this.client.download(`${this.connection}/${this.entity}`, params, fileType);
-
+    const response = await this.client.download(this.buildPath(), params, fileType);
     return response;
   }
-
 }
