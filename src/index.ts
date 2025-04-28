@@ -5,7 +5,10 @@ import { VystaWorkflowService } from './base/VystaWorkflowService.js';
 import { VystaFileService } from './VystaFileService.js';
 import { IDataService, IReadonlyDataService } from './IDataService.js';
 import { FileType } from './types.js';
-import { VystaAuth, TokenStorage, AuthErrorHandler } from './VystaAuth.js';
+import { VystaAuth, TokenStorage, TokenKey, AuthErrorHandler } from './VystaAuth.js';
+import { VystaRoleService } from './VystaRoleService.js';
+import { VystaPermissionService } from './base/VystaPermissionService.js';
+import type { Role, ObjectPermission } from './types.js';
 
 import type { 
   VystaConfig,
@@ -48,6 +51,7 @@ export {
   OrderBy,
   Principal,
   AuthResult,
+  TokenKey,
   UserProfile,
   VystaResponse,
   DataResult,
@@ -60,5 +64,12 @@ export {
   // Auth
   VystaAuth,
   TokenStorage,
-  AuthErrorHandler
+  AuthErrorHandler,
+  // Role service
+  VystaRoleService,
+  // Permission service
+  VystaPermissionService,
+  // Permission and role types
+  Role,
+  ObjectPermission
 }; 

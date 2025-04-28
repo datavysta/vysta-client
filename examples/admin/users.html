@@ -217,6 +217,8 @@
             // Set userId on modal buttons
             document.querySelector('button[onclick*="resendInvite"]').dataset.userid = userId;
             document.querySelector('button[onclick*="resetPassword"]').dataset.userid = userId;
+            // Store userId on the form for submit
+            form.dataset.userid = userId;
 
             modal.style.display = 'block';
         };
@@ -251,7 +253,7 @@
             e.preventDefault();
             const form = e.target;
             try {
-                await userService.updateUser(this.dataset.userid, {
+                await userService.updateUser(form.dataset.userid, {
                     name: form.name.value,
                     email: form.email.value,
                     roleId: form.roleId.value,
