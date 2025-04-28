@@ -63,6 +63,10 @@
     </style>
 </head>
 <body>
+    <div id="toolbar" style="padding: 10px; background: #f5f5f5; border-bottom: 1px solid #ddd;">
+        <button id="test-permission-btn">Test Northwinds Permission</button>
+        <button id="test-bad-permission-btn">Test BadNorthwinds Permission</button>
+    </div>
     <div id="myGrid"></div>
     <div id="editModal" class="modal">
         <div class="modal-content">
@@ -109,6 +113,7 @@
         import { VystaClient } from '../../src/VystaClient';
         import { VystaAdminUserService } from '../../src/VystaAdminUserService';
         import { VystaRoleService } from '../../src/VystaRoleService';
+        import { VystaPermissionService } from '../../src/VystaPermissionService';
 
         const client = new VystaClient({ 
             baseUrl: 'http://localhost:8080',
@@ -117,6 +122,7 @@
 
         const userService = new VystaAdminUserService(client);
         const roleService = new VystaRoleService(client);
+        const permissionService = new VystaPermissionService(client);
 
         // Grid configuration
         const gridOptions = {
@@ -279,6 +285,30 @@
         }
 
         initGrid();
+
+        document.getElementById('test-permission-btn').addEventListener('click', async () => {
+            try {
+                const canSelect = await permissionService.canSelectConnection('Northwinds');
+                alert(canSelect
+                    ? 'User CAN select from Northwinds connection.'
+                    : 'User CANNOT select from Northwinds connection.'
+                );
+            } catch (error) {
+                alert('Failed to check permission: ' + error);
+            }
+        });
+
+        document.getElementById('test-bad-permission-btn').addEventListener('click', async () => {
+            try {
+                const canSelect = await permissionService.canSelectConnection('BadNorthwinds');
+                alert(canSelect
+                    ? 'User CAN select from BadNorthwinds connection.'
+                    : 'User CANNOT select from BadNorthwinds connection.'
+                );
+            } catch (error) {
+                alert('Failed to check permission: ' + error);
+            }
+        });
     </script>
 </body>
 </html> 

@@ -1,5 +1,5 @@
-import { VystaClient } from '../VystaClient.js';
-import { ObjectPermission } from '../types.js';
+import { VystaClient } from './VystaClient.js';
+import { ObjectPermission } from './types.js';
 
 export class VystaPermissionService {
   constructor(private client: VystaClient) {}
@@ -30,6 +30,14 @@ export class VystaPermissionService {
 
   async getFilesystemPermissions(filesystemName: string): Promise<ObjectPermission> {
     return this.fetchPermission(`/rest/permissions/filesystem/${encodeURIComponent(filesystemName)}`);
+  }
+
+  /**
+   * Helper: Returns true if the connection has the 'select' grant
+   */
+  async canSelectConnection(connectionName: string): Promise<boolean> {
+    const perms = await this.getConnectionPermissions(connectionName);
+    return Array.isArray(perms.grants) && perms.grants.includes('SELECT');
   }
 
   private async fetchPermission(path: string): Promise<ObjectPermission> {
