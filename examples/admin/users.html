@@ -108,6 +108,7 @@
     <script type="module">
         import { VystaClient } from '../../src/VystaClient';
         import { VystaAdminUserService } from '../../src/VystaAdminUserService';
+        import { VystaRoleService } from '../../src/VystaRoleService';
 
         const client = new VystaClient({ 
             baseUrl: 'http://localhost:8080',
@@ -115,6 +116,7 @@
         });
 
         const userService = new VystaAdminUserService(client);
+        const roleService = new VystaRoleService(client);
 
         // Grid configuration
         const gridOptions = {
@@ -194,6 +196,17 @@
             const form = document.getElementById('editForm');
             const users = await userService.listUsers();
             const user = users.find(u => u.id === userId);
+
+            // Fetch roles and populate the select box
+            const roles = await roleService.getAllRoles();
+            const roleSelect = form.roleId;
+            roleSelect.innerHTML = '';
+            roles.forEach(role => {
+                const option = document.createElement('option');
+                option.value = role.id;
+                option.textContent = role.name;
+                roleSelect.appendChild(option);
+            });
 
             form.name.value = user.name;
             form.email.value = user.email;

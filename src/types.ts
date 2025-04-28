@@ -99,3 +99,10 @@ export interface ObjectPermission {
   where: any;
   grants: string[];
 }
+
+// Role model for use with the admin role endpoint
+export interface Role {
+  id: string;
+  name: string;
+  description?: string;
+}
