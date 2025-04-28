@@ -409,6 +409,98 @@ uppy.addFile({
 uppy.upload();
 ```
 
+## Admin Services
+
+### User Administration
+
+The `VystaAdminUserService` provides methods for managing users, including listing, updating, resending invitations, and resetting passwords.
+
+```typescript
+import { VystaClient, VystaAdminUserService } from '@datavysta/vysta-client';
+
+const client = new VystaClient({ baseUrl: 'http://localhost:8080' });
+const userService = new VystaAdminUserService(client);
+
+// List users
+const users = await userService.listUsers();
+
+// Update a user
+await userService.updateUser(userId, {
+  name: 'Jane Doe',
+  email: 'jane@example.com',
+  roleId: 'ADMIN',
+  disabled: false,
+  forceChange: false
+});
+
+// Resend invitation
+await userService.resendInvitation(userId);
+
+// Reset password
+await userService.sendForgotPassword(userId);
+```
+
+### Role Management
+
+The `VystaRoleService` allows you to fetch all roles defined in the system.
+
+```typescript
+import { VystaClient, VystaRoleService, Role } from '@datavysta/vysta-client';
+
+const client = new VystaClient({ baseUrl: 'http://localhost:8080' });
+const roleService = new VystaRoleService(client);
+
+const roles: Role[] = await roleService.getAllRoles();
+roles.forEach(role => {
+  console.log(role.id, role.name, role.description);
+});
+```
+
+#### Role Type
+```typescript
+export interface Role {
+  id: string;
+  name: string;
+  description?: string;
+}
+```
+
+### Permissions
+
+The `VystaPermissionService` provides methods to fetch permissions for connections, tables, views, queries, procedures, workflows, and filesystems.
+
+```typescript
+import { VystaClient, VystaPermissionService, ObjectPermission } from '@datavysta/vysta-client';
+
+const client = new VystaClient({ baseUrl: 'http://localhost:8080' });
+const permissionService = new VystaPermissionService(client);
+
+// Get permissions for a connection
+const perms: ObjectPermission = await permissionService.getConnectionPermissions('Northwinds');
+
+// Get permissions for a table
+const tablePerms: ObjectPermission = await permissionService.getTablePermissions('Northwinds', 'region');
+
+// Check if the user can select from a connection
+const canSelect = await permissionService.canSelectConnection('Northwinds');
+if (canSelect) {
+  // User can select from this connection
+  console.log('User CAN select from Northwinds');
+} else {
+  console.log('User CANNOT select from Northwinds');
+}
+```
+
+#### ObjectPermission Type
+```typescript
+export interface ObjectPermission {
+  id: string;
+  children: ObjectPermission[];
+  where: any;
+  grants: string[];
+}
+```
+
 ## Query Operators
 
 The following operators are supported for filtering:
