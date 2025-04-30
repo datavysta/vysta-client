@@ -1,4 +1,4 @@
-import { VystaClient } from './VystaClient.js';
+import { VystaClient, VystaConfig } from './VystaClient.js';
 import { VystaService } from './base/VystaService.js';
 import { VystaReadonlyService } from './base/VystaReadonlyService.js';
 import { VystaWorkflowService } from './base/VystaWorkflowService.js';
@@ -11,7 +11,6 @@ import { VystaPermissionService } from './VystaPermissionService.js';
 import type { Role, ObjectPermission } from './types.js';
 
 import type { 
-  VystaConfig,
   QueryParams,
   FilterOperator,
   FilterValue,

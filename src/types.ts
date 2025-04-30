@@ -1,8 +1,3 @@
-export interface VystaConfig {
-  baseUrl: string;
-  debug?: boolean;
-}
-
 export interface Principal {
   userId: string;
   identityId: string;
