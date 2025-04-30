@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from '@jest/globals';
-import { VystaPermissionService } from '../src/base/VystaPermissionService';
+import { VystaPermissionService } from '../src/VystaPermissionService';
 import { createTestClient, authenticateClient } from './setup';
 
 // These should match real objects in your test DB
