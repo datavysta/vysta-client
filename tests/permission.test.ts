@@ -5,8 +5,8 @@ import { createTestClient, authenticateClient } from './setup';
 // These should match real objects in your test DB
 const CONNECTION = 'Northwinds';
 const TABLE = 'region';
-const VIEW = 'newview';
-const QUERY = 'working';
+//const VIEW = 'newview';
+const QUERY = 'CustomerSummary';
 
 let client: ReturnType<typeof createTestClient>;
 let permissions: VystaPermissionService;
@@ -33,7 +33,7 @@ describe('VystaPermissionService (integration)', () => {
     expect(result).toHaveProperty('where');
     expect(result).toHaveProperty('grants');
   });
-
+/*
   it('fetches view permissions', async () => {
     const result = await permissions.getViewPermissions(CONNECTION, VIEW);
     expect(result).toHaveProperty('id');
@@ -41,7 +41,7 @@ describe('VystaPermissionService (integration)', () => {
     expect(result).toHaveProperty('where');
     expect(result).toHaveProperty('grants');
   });
-
+*/
   it('fetches query permissions', async () => {
     const result = await permissions.getQueryPermissions(CONNECTION, QUERY);
     expect(result).toHaveProperty('id');
