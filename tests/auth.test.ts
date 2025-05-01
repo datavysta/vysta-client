@@ -1,4 +1,4 @@
-import { VystaClient } from '../src/VystaClient';
+import { VystaClient } from '../src/VystaClient.js';
 import { AuthErrorHandler, TokenStorage, TokenKey } from '../src/VystaAuth';
 import { TEST_CONFIG } from './config';
 import { describe, it, expect, beforeEach } from '@jest/globals';

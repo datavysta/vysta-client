@@ -1,4 +1,4 @@
-import { VystaClient } from '../src/VystaClient';
+import { VystaClient } from '../src/VystaClient.js';
 import { SignInInfo } from '../src/VystaAuth';
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { createTestClient } from './setup';
