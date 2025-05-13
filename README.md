@@ -331,6 +331,16 @@ The `count` field will be:
 - `-1` when the count is not available
 - Useful for pagination and infinite scroll implementations
 
+### Content Type Handling
+
+The client automatically handles different response types based on the Content-Type header:
+
+- `application/json`: Responses are parsed as JSON
+- `text/plain` and other text formats: Responses are returned as string
+- Other formats: Responses are returned as Blob
+
+This allows the same API methods to work with different response formats, making it more flexible when dealing with APIs that might return different types of data.
+
 See the [examples](examples/) directory for more detailed usage examples.
 
 ### CRUD Operations
@@ -413,7 +423,7 @@ uppy.upload();
 
 ### User Administration
 
-The `VystaAdminUserService` provides methods for managing users, including listing, updating, resending invitations, and resetting passwords.
+The `VystaAdminUserService` provides methods for managing users, including creating, listing, updating, deleting users, as well as managing invitations and password resets.
 
 ```typescript
 import { VystaClient, VystaAdminUserService } from '@datavysta/vysta-client';
@@ -424,20 +434,70 @@ const userService = new VystaAdminUserService(client);
 // List users
 const users = await userService.listUsers();
 
+// Get available roles
+const roleService = new VystaRoleService(client);
+const roles = await roleService.getAllRoles();
+const userRoleId = roles.find(r => r.name === 'User')?.id;
+const adminRoleId = roles.find(r => r.name === 'Admin')?.id;
+
+// Create a new user
+const newUser = await userService.createUser({
+  name: 'John Smith',
+  email: 'john.smith@example.com',
+  roleIds: [userRoleId], // UUID from the roles list
+  disabled: false,
+  forceChange: true
+});
+
 // Update a user
 await userService.updateUser(userId, {
   name: 'Jane Doe',
   email: 'jane@example.com',
-  roleId: 'ADMIN',
-  disabled: false,
-  forceChange: false
+  roleIds: [adminRoleId], // UUID from the roles list
+  disabled: false
 });
 
-// Resend invitation
-await userService.resendInvitation(userId);
+// User management operations
+await userService.resendInvitation(userId);  // Resend invitation email
+await userService.sendInvitation(userId);     // Send a new invitation
+await userService.forgotPassword(userId);     // Send password reset link
+const inviteLink = await userService.copyInvitation(userId);  // Get invitation link to copy/share
+await userService.revokeByUserId(userId);     // Delete/revoke a user
+```
 
-// Reset password
-await userService.sendForgotPassword(userId);
+#### User Type
+```typescript
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  phoneNumber?: string;
+  // The API returns roleIds and roleNames as comma-delimited strings
+  roleIds: string;
+  roleNames: string;
+  // Array versions of the roles
+  roleIdsArray: string[];
+  roleNamesArray: string[];
+  invitationId?: string;
+  forceChange: boolean;
+  disabled: boolean;
+  createdOn: string;
+  modifiedOn: string;
+  properties?: string;
+  password?: string; // Only used when creating/updating users
+}
+
+// For creating users, use this structure
+interface CreateUserData {
+  name: string;
+  email: string;
+  roleIds: string[]; // Array of role UUIDs
+  phoneNumber?: string;
+  disabled?: boolean;
+  forceChange?: boolean;
+  properties?: string;
+  password?: string;
+}
 ```
 
 ### Role Management
@@ -452,6 +512,7 @@ const roleService = new VystaRoleService(client);
 
 const roles: Role[] = await roleService.getAllRoles();
 roles.forEach(role => {
+  // Role IDs are UUIDs
   console.log(role.id, role.name, role.description);
 });
 ```
@@ -459,7 +520,7 @@ roles.forEach(role => {
 #### Role Type
 ```typescript
 export interface Role {
-  id: string;
+  id: string; // UUID
   name: string;
   description?: string;
 }

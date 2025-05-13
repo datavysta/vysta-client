@@ -63,7 +63,8 @@ export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implement
    */
   async create(data: T): Promise<U> {
     const response = await this.client.post<T>(this.buildPath(''), data);
-    return this.hydrate(response);
+    // Cast the response as T since we know in create context it should always return data
+    return this.hydrate(response as T);
   }
 
   /**

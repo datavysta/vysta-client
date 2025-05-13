@@ -173,7 +173,7 @@ export class VystaClient {
    * Performs a POST request to create new data
    * @param path - The path to the resource
    * @param data - The data to create
-   * @returns A promise that resolves to the created item
+   * @returns A promise that resolves to the created item, parsed based on Content-Type
    */
   async post<T>(path: string, data: T): Promise<T> {
     const headers = await this.auth.getAuthHeaders();
@@ -191,7 +191,16 @@ export class VystaClient {
       await this.handleErrorResponse(response, url);
     }
 
-    return response.json();
+    // Handle different response types based on Content-Type header
+    const contentType = response.headers.get('Content-Type');
+    if (contentType && contentType.includes('application/json')) {
+      return await response.json();
+    } else if (contentType && contentType.includes('text')) {
+      return (await response.text()) as unknown as T;
+    } else {
+      // Default to blob for other content types
+      return (await response.blob()) as unknown as T;
+    }
   }
 
   /**
