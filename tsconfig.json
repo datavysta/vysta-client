@@ -6,7 +6,7 @@
     "lib": ["es2018", "dom"],
     "declaration": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": ".",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -20,12 +20,12 @@
     "esm": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "examples/**/*",
+    "tests/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "tests",
-    "**/*.test.ts"
+    "dist"
   ]
 } 

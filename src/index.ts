@@ -9,8 +9,7 @@ import { VystaAuth, TokenStorage, TokenKey, AuthErrorHandler } from './VystaAuth
 import { VystaRoleService } from './VystaRoleService.js';
 import { VystaPermissionService } from './VystaPermissionService.js';
 import type { Role, ObjectPermission } from './types.js';
-
-import type { 
+import type {
   QueryParams,
   FilterOperator,
   FilterValue,
@@ -21,14 +20,14 @@ import type {
   AuthResult,
   UserProfile,
   VystaResponse,
-  DataResult
+  DataResult,
 } from './types.js';
 import type {
   FileInfo,
   FileUploadResponse,
   FileUploadParams,
   FileResult,
-  TusUploadOptions
+  TusUploadOptions,
 } from './VystaFileService.js';
 
 export {
@@ -70,5 +69,5 @@ export {
   VystaPermissionService,
   // Permission and role types
   Role,
-  ObjectPermission
-}; 
+  ObjectPermission,
+};

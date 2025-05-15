@@ -9,14 +9,14 @@ interface ProductWithValue extends Product {
 export class ProductService extends VystaService<Product, ProductWithValue> {
   constructor(client: VystaClient) {
     super(client, 'Northwinds', 'Products', {
-      primaryKey: 'productId'
+      primaryKey: 'productId',
     });
   }
 
   protected override hydrate(product: Product): ProductWithValue {
     return {
       ...product,
-      _totalStockValue: (product?.unitPrice ?? 0) * (product?.unitsInStock ?? 0)
+      _totalStockValue: (product?.unitPrice ?? 0) * (product?.unitsInStock ?? 0),
     };
   }
 }
@@ -24,7 +24,7 @@ export class ProductService extends VystaService<Product, ProductWithValue> {
 export class OrderService extends VystaService<Order> {
   constructor(client: VystaClient) {
     super(client, 'Northwinds', 'Orders', {
-      primaryKey: 'orderId'
+      primaryKey: 'orderId',
     });
   }
 }
@@ -32,7 +32,7 @@ export class OrderService extends VystaService<Order> {
 export class CustomerService extends VystaService<Customer> {
   constructor(client: VystaClient) {
     super(client, 'Northwinds', 'Customers', {
-      primaryKey: 'customerId'
+      primaryKey: 'customerId',
     });
   }
 }
@@ -40,7 +40,7 @@ export class CustomerService extends VystaService<Customer> {
 export class SupplierService extends VystaService<Supplier> {
   constructor(client: VystaClient) {
     super(client, 'Northwinds', 'Suppliers', {
-      primaryKey: 'supplierId'
+      primaryKey: 'supplierId',
     });
   }
 }
@@ -48,7 +48,7 @@ export class SupplierService extends VystaService<Supplier> {
 export class OrderDetailsService extends VystaService<OrderDetails> {
   constructor(client: VystaClient) {
     super(client, 'Northwinds', 'OrderDetails', {
-      primaryKey: ["orderId","productId"]
+      primaryKey: ['orderId', 'productId'],
     });
   }
 }

@@ -1,6 +1,6 @@
-import {AuthErrorHandler, SignInInfo, TokenStorage, VystaAuth} from './VystaAuth.js';
-import type {FilterCondition, QueryParams, UserProfile} from './types.js';
-import {AuthResult, FileType} from './types.js';
+import { AuthErrorHandler, SignInInfo, TokenStorage, VystaAuth } from './VystaAuth.js';
+import type { FilterCondition, QueryParams, UserProfile } from './types.js';
+import { AuthResult, FileType } from './types.js';
 
 export interface GetResponse<T> {
   data: T[];
@@ -20,11 +20,7 @@ export class VystaClient {
 
   constructor(private config: VystaConfig) {
     this.debug = config.debug || false;
-    this.auth = new VystaAuth(
-      this.config.baseUrl,
-      config.storage,
-      config.errorHandler
-    );
+    this.auth = new VystaAuth(this.config.baseUrl, config.storage, config.errorHandler);
   }
 
   private log(...args: any[]) {
@@ -64,8 +60,8 @@ export class VystaClient {
         queryParts.push(`select=${params.select.join(',')}`);
       } else {
         const mappedSelect = Object.entries(params.select)
-            .map(([key, value]) => `${key}=${value}`)
-            .join(',');
+          .map(([key, value]) => `${key}=${value}`)
+          .join(',');
         queryParts.push(`select=${mappedSelect}`);
       }
     }
@@ -74,9 +70,10 @@ export class VystaClient {
       Object.entries(params.filters).forEach(([field, conditions]) => {
         if (conditions) {
           Object.entries(conditions as FilterCondition).forEach(([operator, value]) => {
-            const encodedValue = (operator === 'like' || operator === 'nlike')
-              ? encodeURIComponent(value as string)
-              : value;
+            const encodedValue =
+              operator === 'like' || operator === 'nlike'
+                ? encodeURIComponent(value as string)
+                : value;
             queryParts.push(`${field}=${operator}.${encodedValue}`);
           });
         }
@@ -94,11 +91,11 @@ export class VystaClient {
     }
 
     if (params.recordCount) {
-        queryParts.push('recordCount=true');
+      queryParts.push('recordCount=true');
     }
 
     if (params.q) {
-        queryParts.push(`q=${encodeURIComponent(params.q)}`);
+      queryParts.push(`q=${encodeURIComponent(params.q)}`);
     }
 
     if (params.offset !== undefined) {
@@ -152,7 +149,7 @@ export class VystaClient {
 
       const response = await fetch(url, {
         method: 'GET',
-        headers
+        headers,
       });
 
       if (!response.ok) {
@@ -160,7 +157,9 @@ export class VystaClient {
       }
 
       const data = await response.json();
-      const recordCount = params?.recordCount ? Number(response.headers.get('Recordcount') ?? -1) : undefined;
+      const recordCount = params?.recordCount
+        ? Number(response.headers.get('Recordcount') ?? -1)
+        : undefined;
 
       return { data, recordCount };
     } catch (error) {
@@ -184,7 +183,7 @@ export class VystaClient {
     const response = await fetch(url, {
       method: 'POST',
       headers,
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
 
     if (!response.ok) {
@@ -219,7 +218,7 @@ export class VystaClient {
     const response = await fetch(url, {
       method: 'PATCH',
       headers,
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
 
     if (!response.ok) {
@@ -238,7 +237,7 @@ export class VystaClient {
     const response = await fetch(url, {
       method: 'PUT',
       headers,
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
 
     if (!response.ok) {
@@ -263,7 +262,7 @@ export class VystaClient {
 
     const response = await fetch(url, {
       method: 'DELETE',
-      headers
+      headers,
     });
 
     if (!response.ok) {
@@ -300,18 +299,15 @@ export class VystaClient {
    * @param params - Query parameters to be sent in the request body
    * @returns A promise that resolves to either a GetResponse containing data or a Blob for file downloads
    */
-  async query<T>(
-      path: string,
-      params?: QueryParams<T>
-  ): Promise<GetResponse<T>> {
+  async query<T>(path: string, params?: QueryParams<T>): Promise<GetResponse<T>> {
     try {
       const headers = await this.auth.getAuthHeaders();
       const url = this.getBackendUrl(`${path}/query`);
 
-      this.logRequest("POST", url, params);
+      this.logRequest('POST', url, params);
 
       const response = await fetch(url, {
-        method: "POST",
+        method: 'POST',
         headers,
         body: JSON.stringify(params || {}),
       });
@@ -322,12 +318,12 @@ export class VystaClient {
 
       const data = await response.json();
       const recordCount = params?.recordCount
-          ? Number(response.headers.get("Recordcount") ?? -1)
-          : undefined;
+        ? Number(response.headers.get('Recordcount') ?? -1)
+        : undefined;
 
       return { data, recordCount };
     } catch (error) {
-      this.log("Request failed:", error);
+      this.log('Request failed:', error);
       throw error instanceof Error ? error : new Error(String(error));
     }
   }
@@ -341,18 +337,18 @@ export class VystaClient {
    * @returns A promise that resolves to either a GetResponse containing data or a Blob for file downloads
    */
   async download(
-      path: string,
-      params?: QueryParams<any>,
-      fileType: FileType = FileType.CSV
+    path: string,
+    params?: QueryParams<any>,
+    fileType: FileType = FileType.CSV,
   ): Promise<Blob> {
     try {
       const headers = await this.auth.getAuthHeaders(fileType);
       const url = this.getBackendUrl(`${path}/query`);
 
-      this.logRequest("POST", url, params);
+      this.logRequest('POST', url, params);
 
       const response = await fetch(url, {
-        method: "POST",
+        method: 'POST',
         headers,
         body: JSON.stringify(params || {}),
       });
@@ -363,7 +359,7 @@ export class VystaClient {
 
       return await response.blob();
     } catch (error) {
-      this.log("Request failed:", error);
+      this.log('Request failed:', error);
       throw error instanceof Error ? error : new Error(String(error));
     }
   }
@@ -376,4 +372,4 @@ export class VystaClient {
     }
     throw new Error(error);
   }
-} 
+}

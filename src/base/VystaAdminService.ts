@@ -3,7 +3,12 @@ import { VystaService } from './VystaService.js';
 import { PrimaryKeyType } from '../IDataService.js';
 
 export abstract class VystaAdminService<T, U = T> extends VystaService<T, U> {
-  constructor(client: VystaClient, connection: string, entity: string, config: { primaryKey: keyof T | Array<keyof T> }) {
+  constructor(
+    client: VystaClient,
+    connection: string,
+    entity: string,
+    config: { primaryKey: keyof T | Array<keyof T> },
+  ) {
     super(client, connection, entity, config);
     this.basePath = 'api';
   }
@@ -21,4 +26,4 @@ export abstract class VystaAdminService<T, U = T> extends VystaService<T, U> {
   async delete(id: PrimaryKeyType<T>): Promise<number> {
     return this.client.delete(this.buildPath(`id/${id}`));
   }
-} 
+}

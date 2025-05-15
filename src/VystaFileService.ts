@@ -1,6 +1,7 @@
 import Uppy from '@uppy/core';
 import Tus from '@uppy/tus';
-import {VystaClient} from "./VystaClient";
+
+import { VystaClient } from './VystaClient';
 
 // Define the FileInfo interface if it's not exported from filesystem
 export interface FileInfo {
@@ -100,7 +101,7 @@ export class VystaFileService {
    */
   async createUppy(options?: TusUploadOptions): Promise<any> {
     // Get the TUS endpoint if not provided
-    const endpoint = options?.endpoint || await this.getTusEndpoint();
+    const endpoint = options?.endpoint || (await this.getTusEndpoint());
 
     // Create an Uppy instance
     const uppy = new Uppy({
@@ -110,24 +111,24 @@ export class VystaFileService {
       debug: this.debug,
       restrictions: {
         maxNumberOfFiles: 1,
-        allowedFileTypes: options?.allowedFileTypes || null
-      }
+        allowedFileTypes: options?.allowedFileTypes || null,
+      },
     });
-    
+
     // Add the TUS plugin with the provided options
     uppy.use(Tus, {
       endpoint,
       retryDelays: options?.retryDelays || [0, 1000, 3000, 5000],
       chunkSize: options?.chunkSize,
       limit: options?.limit || 1,
-      headers: options?.headers
+      headers: options?.headers,
     });
-    
+
     // Set up event handlers for logging
     uppy.on('upload-error', (file: any, error: any) => {
       this.log(`Upload error for file ${file?.name || 'unknown'}:`, error);
     });
-    
+
     uppy.on('upload-success', (file: any, response: any) => {
       this.log(`Upload success for file ${file?.name || 'unknown'}:`, response);
       if (file) {
@@ -135,7 +136,7 @@ export class VystaFileService {
       }
       this.log(`Upload URL: ${response.uploadURL}`);
     });
-    
+
     return uppy;
   }
 
@@ -147,20 +148,20 @@ export class VystaFileService {
   async registerUploadedFile(params: FileUploadParams): Promise<FileResult<FileUploadResponse>> {
     try {
       const { path, id, name } = params;
-      
+
       const apiPath = `rest/filesystem/${encodeURIComponent(this.fileSystemName)}/upload`;
       this.log(`Registering file with API path: ${apiPath}`);
       this.log(`Sending POST request to register file...`);
       const data = await this.client.post<any>(apiPath, {
         path,
         id,
-        name
+        name,
       });
       this.log(`Received register file response:`, data);
       return {
         data,
         error: null,
-        success: true
+        success: true,
       };
     } catch (error) {
       this.log('Error registering uploaded file', error);
@@ -176,11 +177,11 @@ export class VystaFileService {
    */
   private handleError(error: any): FileResult<any> {
     this.log('Error in VystaFileService', error);
-    
+
     return {
       data: null,
       error: error instanceof Error ? error : new Error(error?.message || 'Unknown error'),
-      success: false
+      success: false,
     };
   }
 
@@ -193,23 +194,23 @@ export class VystaFileService {
   async uploadFileTus(file: File, options?: TusUploadOptions): Promise<string | null> {
     try {
       this.log(`Uploading file ${file.name} using Tus protocol`);
-      
+
       // Create an Uppy instance
       const uppy = await this.createUppy(options);
-      
+
       // Add the file to Uppy
       uppy.addFile({
         name: file.name,
         type: file.type,
         data: file,
         meta: {
-          fileSystemName: this.fileSystemName
-        }
+          fileSystemName: this.fileSystemName,
+        },
       });
-      
+
       // Upload the file
       this.log('Starting file upload...');
-      
+
       return new Promise<string>((resolve, reject) => {
         uppy.on('upload-success', (file: any, response: any) => {
           this.log('Upload successful', { file, response });
@@ -219,12 +220,12 @@ export class VystaFileService {
             reject(new Error('No file in upload success event'));
           }
         });
-        
+
         uppy.on('upload-error', (file: any, error: any) => {
           this.log('Upload failed', { file, error });
           reject(error);
         });
-        
+
         uppy.upload();
       });
     } catch (error) {
@@ -240,12 +241,12 @@ export class VystaFileService {
   async getTusXhrOptions(): Promise<TusXhrOptions> {
     const endpoint = await this.getTusEndpoint();
     const headers = await this.client['auth'].getAuthHeaders();
-    
+
     return {
       endpoint,
       headers: {
-        Authorization: (headers as Record<string, string>)['authorization']
-      }
+        Authorization: (headers as Record<string, string>)['authorization'],
+      },
     };
   }
 }

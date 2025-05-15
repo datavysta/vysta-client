@@ -1,4 +1,5 @@
 import { jwtDecode } from 'jwt-decode';
+
 import { AuthResult, Principal, UserProfile } from './types.js';
 
 export enum TokenKey {
@@ -6,13 +7,13 @@ export enum TokenKey {
   RefreshToken = 'refreshToken',
   Host = 'host',
   Expiration = 'expiration',
-  Principal = 'principal'
+  Principal = 'principal',
 }
 
 const AUTH_ERRORS = {
   REFRESH_FAILED: 'Authentication refresh failed',
   NO_TOKENS: 'No tokens available for refresh',
-  NOT_AUTHENTICATED: 'Not authenticated'
+  NOT_AUTHENTICATED: 'Not authenticated',
 } as const;
 
 export interface TokenStorage {
@@ -66,7 +67,7 @@ export class VystaAuth {
   constructor(
     private readonly baseUrl: string,
     private readonly storage: TokenStorage = new DefaultStorage(),
-    private readonly errorHandler: AuthErrorHandler = new DefaultErrorHandler()
+    private readonly errorHandler: AuthErrorHandler = new DefaultErrorHandler(),
   ) {
     this.initializeFromStorage();
   }
@@ -130,7 +131,7 @@ export class VystaAuth {
     this.storage.setToken(TokenKey.Principal, JSON.stringify(this.principal));
   }
 
-  async getAuthHeaders(acceptType: string = "application/json"): Promise<HeadersInit> {
+  async getAuthHeaders(acceptType: string = 'application/json'): Promise<HeadersInit> {
     try {
       const token = await this.getAuthToken(true);
       if (!token) {
@@ -139,8 +140,8 @@ export class VystaAuth {
 
       return {
         authorization: `Bearer ${token}`,
-        "content-type": "application/json",
-        accept: acceptType // Dynamically set Accept header
+        'content-type': 'application/json',
+        accept: acceptType, // Dynamically set Accept header
       };
     } catch (error) {
       this.errorHandler.onError(error instanceof Error ? error : new Error(String(error)));
@@ -167,7 +168,7 @@ export class VystaAuth {
     }
 
     const now = Date.now();
-    const jwtExpire = (this.expiration * 1000) - (7 * 1000); // Subtract 7 seconds for testing
+    const jwtExpire = this.expiration * 1000 - 7 * 1000; // Subtract 7 seconds for testing
 
     if (supportReauthenticate && now > jwtExpire) {
       return this.refreshAuth();
@@ -184,25 +185,24 @@ export class VystaAuth {
       const response = await fetch(`${this.baseUrl}/api/auth/getrefreshtoken`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           accessToken: this.accessToken,
-          refreshToken: this.refreshToken
-        })
+          refreshToken: this.refreshToken,
+        }),
       });
-      
+
       const result = await response.json();
-      
+
       if (!response.ok) {
         this.clearAuth();
         throw new Error(AUTH_ERRORS.REFRESH_FAILED);
       }
-      
+
       await this.reinitializeFromAuthenticationResult(result);
       return result.accessToken;
-    }
-    catch (error) {
+    } catch (error) {
       if (!(error instanceof Error) || error.message !== AUTH_ERRORS.REFRESH_FAILED) {
         this.clearAuth();
       }
@@ -236,8 +236,8 @@ export class VystaAuth {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain',
-        'Accept': 'text/plain'
-      }
+        Accept: 'text/plain',
+      },
     });
     if (!response.ok) {
       throw new Error(`Failed to get authorize URL: ${response.statusText}`);
@@ -271,7 +271,7 @@ export class VystaAuth {
   async exchangeToken(token: string): Promise<AuthResult> {
     try {
       const response = await fetch(`${this.baseUrl}/api/auth/exchangeSwitchToken/${token}`);
-      
+
       if (!response.ok) {
         throw new Error(`Token exchange failed: ${response.statusText}`);
       }
@@ -289,7 +289,7 @@ export class VystaAuth {
     try {
       const headers = await this.getAuthHeaders();
       const response = await fetch(`${this.baseUrl}/api/admin/security/userprofile`, {
-        headers
+        headers,
       });
 
       if (!response.ok) {
@@ -302,4 +302,4 @@ export class VystaAuth {
       throw error;
     }
   }
-} 
+}

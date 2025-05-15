@@ -1,13 +1,13 @@
 import { VystaClient } from '../../src/VystaClient';
-import { ProductService, CustomerService } from './services';
+import { ProductService } from './services';
 import { QueryParams } from '../../src/types';
 import { Product } from './types';
 
 async function example() {
   // Initialize client
-  const client = new VystaClient({ 
+  const client = new VystaClient({
     baseUrl: 'http://localhost:8080',
-    debug: true
+    debug: true,
   });
 
   try {
@@ -16,7 +16,6 @@ async function example() {
 
     // Initialize services
     const products = new ProductService(client);
-    const customers = new CustomerService(client);
 
     // Basic queries
     const allProducts = await products.getAll();
@@ -30,16 +29,21 @@ async function example() {
     const params: QueryParams<Product> = {
       filters: {
         unitPrice: { gt: 20 },
-        discontinued: { eq: 0 }
+        discontinued: { eq: 0 },
       },
       order: {
-        unitPrice: 'desc'
+        unitPrice: 'desc',
       },
       limit: 10,
-      offset: 0
+      offset: 0,
     };
     const expensiveProducts = await products.getAll(params);
-    console.log('Expensive active products:', expensiveProducts.data.length, 'Total:', expensiveProducts.count);
+    console.log(
+      'Expensive active products:',
+      expensiveProducts.data.length,
+      'Total:',
+      expensiveProducts.count,
+    );
 
     // Create new record
     const newProduct = await products.create({
@@ -47,20 +51,20 @@ async function example() {
       productName: 'New Product',
       unitPrice: 29.99,
       unitsInStock: 100,
-      discontinued: 0
+      discontinued: false,
     });
     console.log('Created product:', newProduct.productId);
 
     // Update single record
     const updateCount = await products.update(newProduct.productId, {
-      unitPrice: 34.99
+      unitPrice: 34.99,
     });
     console.log('Updated product price, affected rows:', updateCount);
 
     // Bulk update with filter
     const bulkUpdateCount = await products.updateWhere(
       { filters: { discontinued: { eq: 0 } } },
-      { unitsInStock: 0 }
+      { unitsInStock: 0 },
     );
     console.log('Marked products as out of stock, affected rows:', bulkUpdateCount);
 
@@ -72,33 +76,37 @@ async function example() {
     const bulkDeleteCount = await products.deleteWhere({
       filters: {
         discontinued: { eq: 1 },
-        unitsInStock: { eq: 0 }
-      }
+        unitsInStock: { eq: 0 },
+      },
     });
     console.log('Deleted discontinued products with no stock, affected rows:', bulkDeleteCount);
 
     // Pattern matching with LIKE
     const searchResults = await products.getAll({
       filters: {
-        productName: { like: '%Chai%' }
-      }
+        productName: { like: '%Chai%' },
+      },
     });
-    console.log('Products containing "Chai":', searchResults.data.length, 'Total:', searchResults.count);
+    console.log(
+      'Products containing "Chai":',
+      searchResults.data.length,
+      'Total:',
+      searchResults.count,
+    );
 
     // Multiple filters with sorting
     const complexQuery = await products.getAll({
       select: ['productId', 'productName', 'unitPrice'],
       filters: {
         categoryId: { in: [1, 2, 3] },
-        unitPrice: { gt: 10 }
+        unitPrice: { gt: 10 },
       },
       order: {
-        unitPrice: 'asc'
+        unitPrice: 'asc',
       },
-      limit: 5
+      limit: 5,
     });
     console.log('Complex query results:', complexQuery.data.length, 'Total:', complexQuery.count);
-
   } catch (error) {
     console.error('Error:', error);
   } finally {
@@ -107,4 +115,4 @@ async function example() {
 }
 
 // Run the example
-example(); 
+example();
