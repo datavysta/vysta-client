@@ -8,16 +8,14 @@ export interface ServiceConfig<T> {
   basePath?: string;
 }
 
-export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implements IDataService<T, U> {
+export class VystaService<T, U = T>
+  extends VystaReadonlyService<T, U>
+  implements IDataService<T, U>
+{
   protected primaryKey: keyof T | Array<keyof T>;
   protected basePath: string;
 
-  constructor(
-    client: VystaClient,
-    connection: string,
-    entity: string,
-    config: ServiceConfig<T>
-  ) {
+  constructor(client: VystaClient, connection: string, entity: string, config: ServiceConfig<T>) {
     super(client, connection, entity);
     this.primaryKey = config.primaryKey;
     this.basePath = config.basePath ?? 'rest/connections';
@@ -40,8 +38,8 @@ export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implement
 
     return {
       filters: {
-        [this.primaryKey]: { eq: id }
-      } as { [K in keyof T]?: FilterCondition }
+        [this.primaryKey]: { eq: id },
+      } as { [K in keyof T]?: FilterCondition },
     };
   }
 
@@ -104,4 +102,4 @@ export class VystaService<T, U = T> extends VystaReadonlyService<T, U> implement
   async deleteWhere(params: QueryParams<T>): Promise<number> {
     return this.client.delete(this.buildPath(''), params);
   }
-} 
+}

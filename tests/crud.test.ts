@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+
 import { ProductService } from '../examples/querying/services';
 import { Product } from '../examples/querying/types';
 import { createTestClient, authenticateClient } from './setup';
@@ -17,13 +18,13 @@ describe('CRUD Operations', () => {
   afterAll(async () => {
     // Cleanup all test products
     await Promise.all(
-      TEST_PRODUCTS.map(async (id) => {
+      TEST_PRODUCTS.map(async id => {
         try {
           await products.delete(id);
         } catch (e) {
           // Ignore if product doesn't exist
         }
-      })
+      }),
     );
   });
 
@@ -31,8 +32,8 @@ describe('CRUD Operations', () => {
     it('should create a new product with ID 78', async () => {
       // First verify product doesn't exist
       const initialCheck = await products.getAll({
-        select: { productId: "productNo" },
-        filters: { productId: { eq: 78 } }
+        select: { productId: 'productNo' },
+        filters: { productId: { eq: 78 } },
       });
       expect(initialCheck.data.length).toBe(0);
 
@@ -42,7 +43,7 @@ describe('CRUD Operations', () => {
         productName: 'Test Product',
         unitPrice: 29.99,
         unitsInStock: 100,
-        discontinued: false
+        discontinued: false,
       };
 
       await products.create(newProduct);
@@ -63,7 +64,7 @@ describe('CRUD Operations', () => {
 
     it('should get all products', async () => {
       const allProducts = await products.getAll({
-        recordCount: true
+        recordCount: true,
       });
 
       expect(Array.isArray(allProducts.data)).toBe(true);
@@ -76,7 +77,7 @@ describe('CRUD Operations', () => {
     it('should update a product', async () => {
       const updates = {
         productName: 'Updated Test Product',
-        unitPrice: 39.99
+        unitPrice: 39.99,
       };
 
       const affected = await products.update(testProduct.productId, updates);
@@ -90,15 +91,15 @@ describe('CRUD Operations', () => {
     it('should update multiple products', async () => {
       const affected = await products.updateWhere(
         { filters: { discontinued: { eq: false } } },
-        { unitsInStock: 0 }
+        { unitsInStock: 0 },
       );
       expect(affected).toBeGreaterThan(0);
 
       const result = await products.getAll({
         filters: {
           discontinued: { eq: false },
-          unitsInStock: { eq: 0 }
-        }
+          unitsInStock: { eq: 0 },
+        },
       });
 
       expect(result.data.length).toBe(affected);
@@ -112,50 +113,60 @@ describe('CRUD Operations', () => {
     it('should delete a product', async () => {
       const newProduct: Product = {
         productId: 986,
-        productName: 'Porsche Boxster'
+        productName: 'Porsche Boxster',
       };
       await products.create(newProduct);
       const deleteMe = await products.getById(newProduct.productId);
       expect(deleteMe.productId).toBe(newProduct.productId);
       const affected = await products.delete(newProduct.productId);
       expect(affected).toBe(1);
-      
+
       const result = await products.getAll({
         filters: {
-          productId: { eq: newProduct.productId }
-        }
+          productId: { eq: newProduct.productId },
+        },
       });
-      
+
       expect(result.data.length).toBe(0);
     });
 
     it('should delete multiple products', async () => {
       // Create test products
       const testProducts = await Promise.all([
-        products.create({ productId: 200, productName: 'Test 1', unitPrice: 1234.56, discontinued: true }),
-        products.create({ productId: 201, productName: 'Test 2', unitPrice: 1234.56, discontinued: true })
+        products.create({
+          productId: 200,
+          productName: 'Test 1',
+          unitPrice: 1234.56,
+          discontinued: true,
+        }),
+        products.create({
+          productId: 201,
+          productName: 'Test 2',
+          unitPrice: 1234.56,
+          discontinued: true,
+        }),
       ]);
 
       // Delete all discontinued products
       const affected = await products.deleteWhere({
         filters: {
-          unitPrice: { eq: 1234.56 }
-        }
+          unitPrice: { eq: 1234.56 },
+        },
       });
       expect(affected).toBe(2);
 
       // Verify deletion of both products
       const results = await Promise.all([
         products.getAll({
-          filters: { productId: { eq: 200 } }
+          filters: { productId: { eq: 200 } },
         }),
         products.getAll({
-          filters: { productId: { eq: 201 } }
-        })
+          filters: { productId: { eq: 201 } },
+        }),
       ]);
 
       expect(results[0].data.length).toBe(0);
       expect(results[1].data.length).toBe(0);
     });
   });
-}); 
+});

@@ -23,7 +23,7 @@ export interface User {
 }
 
 // Derive CreateUserData from User
-export type CreateUserData = Pick<User, 'name' | 'email'> & 
+export type CreateUserData = Pick<User, 'name' | 'email'> &
   Partial<Pick<User, 'phoneNumber' | 'disabled' | 'forceChange' | 'properties' | 'password'>> & {
     // For creating users, we use arrays of role IDs
     roleIds: string[];
@@ -48,7 +48,7 @@ export class VystaAdminUserService extends VystaAdminService<User> {
     // Include the id in the update data even though it's in the URL
     const updateData = {
       ...userData,
-      id
+      id,
     };
     await this.update(id, updateData as unknown as Partial<User>);
     return this.getById(id);
@@ -96,6 +96,4 @@ export class VystaAdminUserService extends VystaAdminService<User> {
     // Fallback in case the response format is unexpected
     return String(response);
   }
-
-
-} 
+}

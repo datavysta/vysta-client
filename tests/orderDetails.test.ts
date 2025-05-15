@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+
 import { OrderDetailsService } from '../examples/querying/services';
 import { OrderDetails } from '../examples/querying/types';
 import { createTestClient, authenticateClient } from './setup';
@@ -11,7 +12,7 @@ describe('OrderDetails CRUD Operations', () => {
   // Test data with composite keys - using existing order 11074 and valid products (avoiding 16)
   const TEST_RECORDS = [
     { orderId: 11074, productId: 14 },
-    { orderId: 11074, productId: 15 }
+    { orderId: 11074, productId: 15 },
   ];
 
   beforeAll(async () => {
@@ -34,10 +35,10 @@ describe('OrderDetails CRUD Operations', () => {
     it('should create a new order detail with composite key', async () => {
       // First verify record doesn't exist
       const initialCheck = await orderDetails.getAll({
-        filters: { 
+        filters: {
           orderId: { eq: TEST_RECORDS[0].orderId },
-          productId: { eq: TEST_RECORDS[0].productId }
-        }
+          productId: { eq: TEST_RECORDS[0].productId },
+        },
       });
       expect(initialCheck.data.length).toBe(0);
 
@@ -47,7 +48,7 @@ describe('OrderDetails CRUD Operations', () => {
         productId: TEST_RECORDS[0].productId,
         unitPrice: 10.99,
         quantity: 5,
-        discount: 0
+        discount: 0,
       };
 
       await orderDetails.create(newOrderDetail);
@@ -55,7 +56,7 @@ describe('OrderDetails CRUD Operations', () => {
       // Verify record was created and store for later tests
       const createdRecord = await orderDetails.getById({
         orderId: TEST_RECORDS[0].orderId,
-        productId: TEST_RECORDS[0].productId
+        productId: TEST_RECORDS[0].productId,
       });
       expect(createdRecord.orderId).toBe(TEST_RECORDS[0].orderId);
       expect(createdRecord.productId).toBe(TEST_RECORDS[0].productId);
@@ -68,7 +69,7 @@ describe('OrderDetails CRUD Operations', () => {
     it('should get order detail by composite key', async () => {
       const record = await orderDetails.getById({
         orderId: testOrderDetail.orderId,
-        productId: testOrderDetail.productId
+        productId: testOrderDetail.productId,
       });
       expect(record.orderId).toBe(testOrderDetail.orderId);
       expect(record.productId).toBe(testOrderDetail.productId);
@@ -78,9 +79,9 @@ describe('OrderDetails CRUD Operations', () => {
     it('should get filtered order details', async () => {
       const result = await orderDetails.getAll({
         filters: {
-          orderId: { eq: testOrderDetail.orderId }
+          orderId: { eq: testOrderDetail.orderId },
         },
-        recordCount: true
+        recordCount: true,
       });
 
       expect(Array.isArray(result.data)).toBe(true);
@@ -95,7 +96,7 @@ describe('OrderDetails CRUD Operations', () => {
       try {
         await orderDetails.delete({
           orderId: TEST_RECORDS[0].orderId,
-          productId: TEST_RECORDS[0].productId
+          productId: TEST_RECORDS[0].productId,
         });
       } catch (e) {
         // Ignore delete errors
@@ -107,26 +108,29 @@ describe('OrderDetails CRUD Operations', () => {
         productId: TEST_RECORDS[0].productId,
         unitPrice: 10.99,
         quantity: 5,
-        discount: 0
+        discount: 0,
       };
       await orderDetails.create(testRecord);
 
       // Update the record
       const updates = {
         unitPrice: 15.99,
-        quantity: 3
+        quantity: 3,
       };
 
-      const affected = await orderDetails.update({
-        orderId: TEST_RECORDS[0].orderId,
-        productId: TEST_RECORDS[0].productId
-      }, updates);
+      const affected = await orderDetails.update(
+        {
+          orderId: TEST_RECORDS[0].orderId,
+          productId: TEST_RECORDS[0].productId,
+        },
+        updates,
+      );
       expect(affected).toBe(1);
 
       // Verify the update
       const updated = await orderDetails.getById({
         orderId: TEST_RECORDS[0].orderId,
-        productId: TEST_RECORDS[0].productId
+        productId: TEST_RECORDS[0].productId,
       });
       expect(updated.unitPrice).toBe(updates.unitPrice);
       expect(updated.quantity).toBe(updates.quantity);
@@ -149,15 +153,15 @@ describe('OrderDetails CRUD Operations', () => {
           productId: TEST_RECORDS[0].productId,
           unitPrice: 10.99,
           quantity: 5,
-          discount: 0
+          discount: 0,
         },
         {
           orderId: TEST_RECORDS[1].orderId,
           productId: TEST_RECORDS[1].productId,
           unitPrice: 20.99,
           quantity: 1,
-          discount: 0
-        }
+          discount: 0,
+        },
       ];
 
       for (const record of records) {
@@ -184,7 +188,7 @@ describe('OrderDetails CRUD Operations', () => {
       try {
         await orderDetails.delete({
           orderId: TEST_RECORDS[1].orderId,
-          productId: TEST_RECORDS[1].productId
+          productId: TEST_RECORDS[1].productId,
         });
       } catch (e) {
         // Ignore delete errors
@@ -196,23 +200,23 @@ describe('OrderDetails CRUD Operations', () => {
         productId: TEST_RECORDS[1].productId,
         unitPrice: 25.99,
         quantity: 2,
-        discount: 0
+        discount: 0,
       };
       await orderDetails.create(testRecord);
 
       // Delete the record
       const affected = await orderDetails.delete({
         orderId: TEST_RECORDS[1].orderId,
-        productId: TEST_RECORDS[1].productId
+        productId: TEST_RECORDS[1].productId,
       });
       expect(affected).toBe(1);
-      
+
       // Verify deletion
       const result = await orderDetails.getAll({
         filters: {
           orderId: { eq: TEST_RECORDS[1].orderId },
-          productId: { eq: TEST_RECORDS[1].productId }
-        }
+          productId: { eq: TEST_RECORDS[1].productId },
+        },
       });
       expect(result.data.length).toBe(0);
     });
@@ -234,15 +238,15 @@ describe('OrderDetails CRUD Operations', () => {
           productId: TEST_RECORDS[0].productId,
           unitPrice: 10.99,
           quantity: 5,
-          discount: 0
+          discount: 0,
         },
         {
           orderId: TEST_RECORDS[1].orderId,
           productId: TEST_RECORDS[1].productId,
           unitPrice: 25.99,
           quantity: 2,
-          discount: 0
-        }
+          discount: 0,
+        },
       ];
 
       for (const record of records) {
@@ -260,11 +264,11 @@ describe('OrderDetails CRUD Operations', () => {
         const result = await orderDetails.getAll({
           filters: {
             orderId: { eq: record.orderId },
-            productId: { eq: record.productId }
-          }
+            productId: { eq: record.productId },
+          },
         });
         expect(result.data.length).toBe(0);
       }
     });
   });
-}); 
+});

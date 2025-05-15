@@ -1,6 +1,6 @@
-import {VystaClient} from '../VystaClient.js';
-import {DataResult, FileType, QueryParams} from '../types.js';
-import {IReadonlyDataService} from '../IDataService.js';
+import { VystaClient } from '../VystaClient.js';
+import { DataResult, FileType, QueryParams } from '../types.js';
+import { IReadonlyDataService } from '../IDataService.js';
 
 export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataService<T, U> {
   protected basePath: string;
@@ -9,7 +9,7 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
     protected client: VystaClient,
     protected connection: string,
     protected entity: string,
-    basePath: string = 'rest/connections'
+    basePath: string = 'rest/connections',
   ) {
     this.basePath = basePath;
   }
@@ -39,7 +39,7 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
     return {
       data: response.data ? response.data.map(row => this.hydrate(row)) : [],
       count: response.recordCount ?? -1,
-      error: null
+      error: null,
     };
   }
 
@@ -53,7 +53,7 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
     return {
       data: response.data ? response.data.map(row => this.hydrate(row)) : [],
       count: response.recordCount ?? -1,
-      error: null
+      error: null,
     };
   }
 

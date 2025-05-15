@@ -1,6 +1,7 @@
+import { describe, it, expect, beforeEach } from '@jest/globals';
+
 import { VystaClient } from '../src/VystaClient.js';
 import { SignInInfo } from '../src/VystaAuth';
-import { describe, it, expect, beforeEach } from '@jest/globals';
 import { createTestClient } from './setup';
 
 describe('OAuth Authentication', () => {
@@ -9,7 +10,7 @@ describe('OAuth Authentication', () => {
   beforeEach(() => {
     client = new VystaClient({
       baseUrl: 'http://localhost:8080',
-      errorHandler: { onError: () => {} }
+      errorHandler: { onError: () => {} },
     });
   });
 
@@ -39,9 +40,7 @@ describe('OAuth Authentication', () => {
      */
 
     it('should fail with invalid provider id', async () => {
-      await expect(client.getAuthorizeUrl('invalid-id'))
-        .rejects
-        .toThrow();
+      await expect(client.getAuthorizeUrl('invalid-id')).rejects.toThrow();
     });
   });
 
@@ -49,9 +48,7 @@ describe('OAuth Authentication', () => {
   // but we can test the error case
   describe('handleAuthenticationRedirect', () => {
     it('should fail with invalid token', async () => {
-      await expect(client.handleAuthenticationRedirect('invalid-token'))
-        .rejects
-        .toThrow();
+      await expect(client.handleAuthenticationRedirect('invalid-token')).rejects.toThrow();
     });
   });
-}); 
+});

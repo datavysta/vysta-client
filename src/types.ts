@@ -20,25 +20,25 @@ export interface DataResult<T> {
   count: number;
 }
 
-export type FilterOperator = 
-  | 'eq' 
-  | 'neq' 
-  | 'gt' 
-  | 'gte' 
-  | 'lt' 
-  | 'lte' 
-  | 'like' 
-  | 'nlike' 
-  | 'in' 
-  | 'nin' 
-  | 'isnull' 
+export type FilterOperator =
+  | 'eq'
+  | 'neq'
+  | 'gt'
+  | 'gte'
+  | 'lt'
+  | 'lte'
+  | 'like'
+  | 'nlike'
+  | 'in'
+  | 'nin'
+  | 'isnull'
   | 'isnotnull';
 
 export type SortDirection = 'asc' | 'desc';
 
 export enum FileType {
-  CSV = "text/csv",
-  EXCEL = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  CSV = 'text/csv',
+  EXCEL = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 }
 
 export type FilterValue = string | number | boolean | Array<string | number>;
@@ -52,7 +52,7 @@ export type OrderBy<T> = {
 };
 
 export type QueryParams<T> = {
-  select?: { [K in keyof T]?: string; } | Array<keyof T>;
+  select?: { [K in keyof T]?: string } | Array<keyof T>;
   filters?: {
     [K in keyof T]?: FilterCondition;
   };

@@ -23,11 +23,10 @@ async function oauthExample() {
     const mockToken = 'mock-token-from-redirect';
     const authResult = await client.handleAuthenticationRedirect(mockToken);
     console.log('Authenticated:', authResult);
-
   } catch (error) {
     console.error('Error:', error);
   }
 }
 
 // Run example
-oauthExample(); 
+oauthExample();

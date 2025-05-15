@@ -2,7 +2,7 @@ import { VystaClient } from '../src/VystaClient';
 import { ProductService } from './querying/services';
 
 const client = new VystaClient({
-  baseUrl: 'http://localhost:8080'
+  baseUrl: 'http://localhost:8080',
 });
 
 const products = new ProductService(client);
@@ -18,15 +18,17 @@ if (token) {
     try {
       const authResult = await client.exchangeToken(token);
       console.log('[OAuth] Authentication successful, session initialized');
-      
+
       // Log the intended redirect URL
       console.log('[OAuth] Original redirect destination was:', redirectUrl || 'none specified');
 
       // Test authentication by making a sample request
       try {
         const profile = await client.getUserProfile();
-        console.log('[OAuth] Authentication test:', 
-          profile ? `PASSED (Logged in as ${profile.name})` : 'FAILED (no profile found)');
+        console.log(
+          '[OAuth] Authentication test:',
+          profile ? `PASSED (Logged in as ${profile.name})` : 'FAILED (no profile found)',
+        );
       } catch (error) {
         console.error('[OAuth] Authentication test failed:', error);
       }
@@ -42,4 +44,4 @@ if (token) {
 } else {
   console.error('[OAuth] No token provided in redirect');
   window.location.replace('/auth/auth.html');
-} 
+}

@@ -3,7 +3,7 @@ import { SignInInfo } from '../../src/VystaAuth';
 import { ProductService } from '../querying/services';
 
 const client = new VystaClient({
-  baseUrl: 'http://localhost:8080'
+  baseUrl: 'http://localhost:8080',
 });
 
 const products = new ProductService(client);
@@ -64,7 +64,7 @@ function showStatus(message: string, isError = false) {
 }
 
 // Handle password login
-loginForm.addEventListener('submit', async (e) => {
+loginForm.addEventListener('submit', async e => {
   e.preventDefault();
   const email = (document.getElementById('email') as HTMLInputElement).value;
   const password = (document.getElementById('password') as HTMLInputElement).value;
@@ -83,12 +83,13 @@ loginForm.addEventListener('submit', async (e) => {
 async function loadProviders() {
   try {
     const providers = await client.getSignInMethods();
-    
+
     providers.forEach(provider => {
       const button = document.createElement('button');
       button.textContent = `Sign in with ${provider.name}`;
-      button.style.cssText = 'padding: 10px; background: white; border: 1px solid #007bff; color: #007bff; border-radius: 4px;';
-      
+      button.style.cssText =
+        'padding: 10px; background: white; border: 1px solid #007bff; color: #007bff; border-radius: 4px;';
+
       button.addEventListener('click', async () => {
         try {
           console.log(`[OAuth] Initiating ${provider.name} login...`);
@@ -102,7 +103,10 @@ async function loadProviders() {
       providersContainer.appendChild(button);
     });
   } catch (error) {
-    showStatus(`Failed to load providers: ${error instanceof Error ? error.message : String(error)}`, true);
+    showStatus(
+      `Failed to load providers: ${error instanceof Error ? error.message : String(error)}`,
+      true,
+    );
   }
 }
 
@@ -118,7 +122,7 @@ if (token) {
     try {
       const authResult = await client.exchangeToken(token);
       console.log('[OAuth] Token exchange successful');
-      
+
       if (redirectUrl) {
         console.log('[OAuth] Redirecting to:', redirectUrl);
         window.location.replace(redirectUrl || '/');
@@ -130,7 +134,7 @@ if (token) {
 } else {
   // Load providers for initial page load
   loadProviders();
-} 
+}
 
 // Add logout button handler
 logoutButton.addEventListener('click', async () => {
@@ -157,4 +161,4 @@ async function checkAuthStatus() {
 }
 
 // Call it on load and after successful login
-checkAuthStatus(); 
+checkAuthStatus();

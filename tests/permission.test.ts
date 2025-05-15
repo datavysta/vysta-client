@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll } from '@jest/globals';
+
 import { VystaPermissionService } from '../src/VystaPermissionService';
 import { createTestClient, authenticateClient } from './setup';
 
@@ -33,7 +34,7 @@ describe('VystaPermissionService (integration)', () => {
     expect(result).toHaveProperty('where');
     expect(result).toHaveProperty('grants');
   });
-/*
+  /*
   it('fetches view permissions', async () => {
     const result = await permissions.getViewPermissions(CONNECTION, VIEW);
     expect(result).toHaveProperty('id');
@@ -51,4 +52,4 @@ describe('VystaPermissionService (integration)', () => {
   });
 
   // Add similar tests for procedure, workflow, filesystem as needed
-}); 
+});

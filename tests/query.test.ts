@@ -2,7 +2,7 @@ import { ProductService, SupplierService } from '../examples/querying/services';
 import { createTestClient, authenticateClient } from './setup';
 import { IReadonlyDataService, IDataService } from '../src/IDataService';
 import { Product, Supplier } from '../examples/querying/types';
-import {FileType} from "../src/types";
+import { FileType } from '../src/types';
 
 describe('Query Operations', () => {
   const client = createTestClient();
@@ -22,7 +22,7 @@ describe('Query Operations', () => {
   describe('Basic Operations', () => {
     it('should get all products', async () => {
       const allProducts = await products.getAll({
-        recordCount: true
+        recordCount: true,
       });
 
       // More specific array checks
@@ -32,7 +32,7 @@ describe('Query Operations', () => {
       expect(allProducts.data.length).toBeGreaterThan(0);
       expect(allProducts.count).toBeGreaterThan(0);
       expect(allProducts.error).toBeNull();
-      
+
       // Check first item structure
       const firstItem = allProducts.data[0];
       expect(typeof firstItem).toBe('object');
@@ -53,8 +53,8 @@ describe('Query Operations', () => {
       const result = await products.getAll({
         select: ['productId', 'discontinued'],
         filters: {
-          discontinued: { eq: false }
-        }
+          discontinued: { eq: false },
+        },
       });
       expect(result.data[0].discontinued).toBe(false);
     });
@@ -63,8 +63,8 @@ describe('Query Operations', () => {
       const result = await products.getAll({
         select: ['productId', 'unitPrice'],
         filters: {
-          unitPrice: { gt: 20 }
-        }
+          unitPrice: { gt: 20 },
+        },
       });
       expect(result.data[0].unitPrice).toBeGreaterThan(20);
     });
@@ -73,8 +73,8 @@ describe('Query Operations', () => {
       const result = await products.getAll({
         select: ['productId', 'unitPrice'],
         filters: {
-          unitPrice: { gte: 20 }
-        }
+          unitPrice: { gte: 20 },
+        },
       });
       expect(result.data[0].unitPrice).toBeGreaterThanOrEqual(20);
     });
@@ -83,8 +83,8 @@ describe('Query Operations', () => {
       const result = await products.getAll({
         select: ['productId', 'unitPrice'],
         filters: {
-          unitPrice: { lt: 10 }
-        }
+          unitPrice: { lt: 10 },
+        },
       });
       expect(result.data[0].unitPrice).toBeLessThan(10);
     });
@@ -93,8 +93,8 @@ describe('Query Operations', () => {
       const result = await products.getAll({
         select: ['productId', 'unitPrice'],
         filters: {
-          unitPrice: { lte: 10 }
-        }
+          unitPrice: { lte: 10 },
+        },
       });
       expect(result.data[0].unitPrice).toBeLessThanOrEqual(10);
     });
@@ -105,8 +105,8 @@ describe('Query Operations', () => {
       const result = await products.getAll({
         select: ['productId', 'categoryId'],
         filters: {
-          categoryId: { in: [1, 2] }
-        }
+          categoryId: { in: [1, 2] },
+        },
       });
       expect(result.data.length).toBeGreaterThan(0);
       result.data.forEach(product => {
@@ -118,8 +118,8 @@ describe('Query Operations', () => {
       const result = await products.getAll({
         select: ['productId', 'categoryId'],
         filters: {
-          categoryId: { nin: [1, 2] }
-        }
+          categoryId: { nin: [1, 2] },
+        },
       });
       expect(result.data.length).toBeGreaterThan(0);
       result.data.forEach(product => {
@@ -133,9 +133,9 @@ describe('Query Operations', () => {
       const result = await suppliers.getAll({
         select: ['supplierId', 'region'],
         filters: {
-          region: { isnull: true }
+          region: { isnull: true },
         },
-        recordCount: true
+        recordCount: true,
       });
       expect(result.count).toBeGreaterThan(0);
       expect(result.data[0].region).toBeNull();
@@ -146,8 +146,8 @@ describe('Query Operations', () => {
       const result = await products.getAll({
         select: ['productId', 'productName'],
         filters: {
-          productName: { isnotnull: true }
-        }
+          productName: { isnotnull: true },
+        },
       });
       expect(result.data[0].productName).toBeTruthy();
     });
@@ -158,8 +158,8 @@ describe('Query Operations', () => {
       const result = await products.getAll({
         select: ['productId', 'productName'],
         filters: {
-          productName: { like: '%Aniseed%' }
-        }
+          productName: { like: '%Aniseed%' },
+        },
       });
       expect(result.data[0].productName).toMatch(/Aniseed/i);
       expect(result.data[0].productName).toBe('Aniseed Syrup');
@@ -169,8 +169,8 @@ describe('Query Operations', () => {
       const result = await products.getAll({
         select: ['productId', 'productName'],
         filters: {
-          productName: { nlike: '%Chai%' }
-        }
+          productName: { nlike: '%Chai%' },
+        },
       });
       expect(result.data[0].productName).not.toMatch(/Chai/i);
     });
@@ -182,8 +182,8 @@ describe('Query Operations', () => {
         select: ['supplierId', 'companyName'],
         recordCount: true,
         filters: {
-          companyName: { eq: 'NON_EXISTENT_SUPPLIER' }
-        }
+          companyName: { eq: 'NON_EXISTENT_SUPPLIER' },
+        },
       });
       expect(result.data).toEqual([]);
       expect(result.count).toBe(0);
@@ -194,11 +194,11 @@ describe('Query Operations', () => {
   describe('Search Query Alises', () => {
     it('q - select alias', async () => {
       const result = await products.getAll({
-        select: {"productId": "id", "productName": "name", "unitPrice": "price"},
+        select: { productId: 'id', productName: 'name', unitPrice: 'price' },
         q: 'tea',
         filters: {
-          unitPrice: { gt: 9 }
-        }
+          unitPrice: { gt: 9 },
+        },
       });
       expect(result.data.length).toBeGreaterThan(0);
       const row: any = result.data[0];
@@ -210,15 +210,15 @@ describe('Query Operations', () => {
   describe('Search Query Alises', () => {
     it('select alias', async () => {
       const result = await products.getAll({
-        select: {"productId": "id", "productName": "name", "unitPrice": "price"},
+        select: { productId: 'id', productName: 'name', unitPrice: 'price' },
         q: 'tea',
         filters: {
-          unitPrice: { gt: 9 }
-        }
+          unitPrice: { gt: 9 },
+        },
       });
       expect(result.data.length).toBeGreaterThan(0);
       const row: any = result.data[0];
-      expect(row.id).toBeDefined()
+      expect(row.id).toBeDefined();
       expect(row.name.toLowerCase()).toContain('tea');
       expect(row.price).toBeGreaterThan(9);
     });
@@ -228,7 +228,7 @@ describe('Query Operations', () => {
     it('q - full text search', async () => {
       const result = await products.getAll({
         select: ['productId', 'productName'],
-        q: 'chai'
+        q: 'chai',
       });
       expect(result.data.length).toBeGreaterThan(0);
       expect(result.data[0].productName.toLowerCase()).toContain('chai');
@@ -238,7 +238,7 @@ describe('Query Operations', () => {
       const result = await products.getAll({
         select: ['productId', 'productName'],
         q: 'nonexistentproduct123456789',
-        recordCount: true
+        recordCount: true,
       });
       expect(result.data).toEqual([]);
       expect(result.count).toBe(0);
@@ -249,8 +249,8 @@ describe('Query Operations', () => {
         select: ['productId', 'productName', 'unitPrice'],
         q: 'tea',
         filters: {
-          unitPrice: { gt: 9 }
-        }
+          unitPrice: { gt: 9 },
+        },
       });
       expect(result.data.length).toBeGreaterThan(0);
       expect(result.data[0].productName.toLowerCase()).toContain('tea');
@@ -261,7 +261,7 @@ describe('Query Operations', () => {
       const result = await products.getAll({
         select: ['productId', 'productName'],
         q: 'nonexistentproduct123456789',
-        recordCount: true
+        recordCount: true,
       });
       expect(result.data).toEqual([]);
       expect(result.count).toBe(0);
@@ -270,19 +270,25 @@ describe('Query Operations', () => {
 
   describe('Download', () => {
     it('csv', async () => {
-      const result = await products.download({
-        select: ['productId', 'productName', 'unitsInStock', 'unitsOnOrder']
-      }, FileType.CSV);
-        const length = result.size;
-        expect(length).toBeGreaterThan(0)
+      const result = await products.download(
+        {
+          select: ['productId', 'productName', 'unitsInStock', 'unitsOnOrder'],
+        },
+        FileType.CSV,
+      );
+      const length = result.size;
+      expect(length).toBeGreaterThan(0);
     });
 
     it('excel', async () => {
-      const result = await products.download({
-        select: ['productId', 'productName', 'unitsInStock', 'unitsOnOrder']
-      }, FileType.EXCEL);
+      const result = await products.download(
+        {
+          select: ['productId', 'productName', 'unitsInStock', 'unitsOnOrder'],
+        },
+        FileType.EXCEL,
+      );
       const length = result.size;
-      expect(length).toBeGreaterThan(0)
+      expect(length).toBeGreaterThan(0);
     });
   });
 
@@ -292,51 +298,46 @@ describe('Query Operations', () => {
         select: ['productId', 'productName', 'unitsInStock', 'unitsOnOrder'],
         conditions: [
           {
-            "id": "e94252f2-8328-4b3b-a704-99cfa4ac7ee8",
-            "type": "Group",
-            "children": [
+            id: 'e94252f2-8328-4b3b-a704-99cfa4ac7ee8',
+            type: 'Group',
+            children: [
               {
-                "id": "5f68e842-e9f8-4f31-924f-1f38c270aa4e",
-                "type": "Expression",
-                "comparisonOperator": "GreaterThan",
-                "children": [],
-                "valid": true,
-                "active": true,
-                "columnName": "unitsInStock",
-                "values": [
-                  "0"
-                ]
+                id: '5f68e842-e9f8-4f31-924f-1f38c270aa4e',
+                type: 'Expression',
+                comparisonOperator: 'GreaterThan',
+                children: [],
+                valid: true,
+                active: true,
+                columnName: 'unitsInStock',
+                values: ['0'],
               },
               {
-                "id": "753aaa1e-023e-4283-ac6f-951f06a0fb4e",
-                "type": "Expression",
-                "comparisonOperator": "GreaterThan",
-                "children": [],
-                "valid": true,
-                "active": true,
-                "columnName": "unitsOnOrder",
-                "values": [
-                  "0"
-                ]
+                id: '753aaa1e-023e-4283-ac6f-951f06a0fb4e',
+                type: 'Expression',
+                comparisonOperator: 'GreaterThan',
+                children: [],
+                valid: true,
+                active: true,
+                columnName: 'unitsOnOrder',
+                values: ['0'],
               },
               {
-                "id": "753aaa1e-023e-4283-ac6f-951f06a0fb4e",
-                "type": "Expression",
-                "comparisonOperator": "IsNotNull",
-                "children": [],
-                "valid": true,
-                "active": true,
-                "columnName": "productName",
-                "values": [
-                ]
-              }
+                id: '753aaa1e-023e-4283-ac6f-951f06a0fb4e',
+                type: 'Expression',
+                comparisonOperator: 'IsNotNull',
+                children: [],
+                valid: true,
+                active: true,
+                columnName: 'productName',
+                values: [],
+              },
             ],
-            "valid": true,
-            "values": [],
-            "active": true
-          }
+            valid: true,
+            values: [],
+            active: true,
+          },
         ],
-        recordCount: true
+        recordCount: true,
       });
 
       expect(result.data.length).toBeGreaterThan(0);
@@ -344,4 +345,4 @@ describe('Query Operations', () => {
       expect(result.data[0].unitsOnOrder).toBeGreaterThan(0);
     });
   });
-}); 
+});

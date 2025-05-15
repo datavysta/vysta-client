@@ -63,4 +63,4 @@ export interface OrderDetails {
   unitPrice: number;
   quantity: number;
   discount: number;
-} 
+}

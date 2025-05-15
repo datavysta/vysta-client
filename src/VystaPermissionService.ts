@@ -5,23 +5,36 @@ export class VystaPermissionService {
   constructor(private client: VystaClient) {}
 
   async getConnectionPermissions(connectionName: string): Promise<ObjectPermission> {
-    return this.fetchPermission(`/rest/permissions/connection/${encodeURIComponent(connectionName)}`);
+    return this.fetchPermission(
+      `/rest/permissions/connection/${encodeURIComponent(connectionName)}`,
+    );
   }
 
   async getTablePermissions(connectionName: string, tableName: string): Promise<ObjectPermission> {
-    return this.fetchPermission(`/rest/permissions/connection/${encodeURIComponent(connectionName)}/table/${encodeURIComponent(tableName)}`);
+    return this.fetchPermission(
+      `/rest/permissions/connection/${encodeURIComponent(connectionName)}/table/${encodeURIComponent(tableName)}`,
+    );
   }
 
   async getViewPermissions(connectionName: string, viewName: string): Promise<ObjectPermission> {
-    return this.fetchPermission(`/rest/permissions/connection/${encodeURIComponent(connectionName)}/view/${encodeURIComponent(viewName)}`);
+    return this.fetchPermission(
+      `/rest/permissions/connection/${encodeURIComponent(connectionName)}/view/${encodeURIComponent(viewName)}`,
+    );
   }
 
   async getQueryPermissions(connectionName: string, queryName: string): Promise<ObjectPermission> {
-    return this.fetchPermission(`/rest/permissions/connection/${encodeURIComponent(connectionName)}/query/${encodeURIComponent(queryName)}`);
+    return this.fetchPermission(
+      `/rest/permissions/connection/${encodeURIComponent(connectionName)}/query/${encodeURIComponent(queryName)}`,
+    );
   }
 
-  async getProcedurePermissions(connectionName: string, procedureName: string): Promise<ObjectPermission> {
-    return this.fetchPermission(`/rest/permissions/connection/${encodeURIComponent(connectionName)}/procedure/${encodeURIComponent(procedureName)}`);
+  async getProcedurePermissions(
+    connectionName: string,
+    procedureName: string,
+  ): Promise<ObjectPermission> {
+    return this.fetchPermission(
+      `/rest/permissions/connection/${encodeURIComponent(connectionName)}/procedure/${encodeURIComponent(procedureName)}`,
+    );
   }
 
   async getWorkflowPermissions(workflowName: string): Promise<ObjectPermission> {
@@ -29,7 +42,9 @@ export class VystaPermissionService {
   }
 
   async getFilesystemPermissions(filesystemName: string): Promise<ObjectPermission> {
-    return this.fetchPermission(`/rest/permissions/filesystem/${encodeURIComponent(filesystemName)}`);
+    return this.fetchPermission(
+      `/rest/permissions/filesystem/${encodeURIComponent(filesystemName)}`,
+    );
   }
 
   /**
@@ -49,4 +64,4 @@ export class VystaPermissionService {
     }
     return response.json();
   }
-} 
+}

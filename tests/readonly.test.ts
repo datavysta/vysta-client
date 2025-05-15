@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll } from '@jest/globals';
+
 import { VystaReadonlyService } from '../src/base/VystaReadonlyService';
 import { createTestClient, authenticateClient } from './setup';
 
@@ -12,7 +13,10 @@ interface HydratedCustomerSummary extends CustomerSummary {
   displayName: string;
 }
 
-class CustomerSummaryService extends VystaReadonlyService<CustomerSummary, HydratedCustomerSummary> {
+class CustomerSummaryService extends VystaReadonlyService<
+  CustomerSummary,
+  HydratedCustomerSummary
+> {
   constructor(client: any) {
     super(client, 'Northwinds', 'CustomerSummary');
   }
@@ -20,7 +24,7 @@ class CustomerSummaryService extends VystaReadonlyService<CustomerSummary, Hydra
   protected override hydrate(row: CustomerSummary): HydratedCustomerSummary {
     return {
       ...row,
-      displayName: `${row.companyName} (${row.count} orders)`
+      displayName: `${row.companyName} (${row.count} orders)`,
     };
   }
 }
@@ -45,8 +49,8 @@ describe('VystaReadonlyService', () => {
     it('should get filtered records', async () => {
       const result = await summaries.getAll({
         filters: {
-          count: { gt: 0 }
-        }
+          count: { gt: 0 },
+        },
       });
       expect(Array.isArray(result.data)).toBe(true);
       expect(result.data.length).toBeGreaterThan(0);
@@ -56,7 +60,7 @@ describe('VystaReadonlyService', () => {
     it('should get records with pagination', async () => {
       const result = await summaries.getAll({
         limit: 5,
-        offset: 0
+        offset: 0,
       });
       expect(Array.isArray(result.data)).toBe(true);
       expect(result.data.length).toBeLessThanOrEqual(5);
@@ -66,8 +70,8 @@ describe('VystaReadonlyService', () => {
     it('should get records with sorting', async () => {
       const result = await summaries.getAll({
         order: {
-          companyName: 'asc'
-        }
+          companyName: 'asc',
+        },
       });
       expect(Array.isArray(result.data)).toBe(true);
       expect(result.data.length).toBeGreaterThan(0);
@@ -81,7 +85,9 @@ describe('VystaReadonlyService', () => {
       expect(Array.isArray(result.data)).toBe(true);
       expect(result.data.length).toBeGreaterThan(0);
       expect(result.data[0]).toHaveProperty('displayName');
-      expect(result.data[0].displayName).toBe(`${result.data[0].companyName} (${result.data[0].count} orders)`);
+      expect(result.data[0].displayName).toBe(
+        `${result.data[0].companyName} (${result.data[0].count} orders)`,
+      );
       expect(result.error).toBeNull();
     });
   });
@@ -90,10 +96,10 @@ describe('VystaReadonlyService', () => {
     it('should handle input properties in query params', async () => {
       const result = await summaries.getAll({
         inputProperties: {
-          id: 'ALFKI'
-        }
+          id: 'ALFKI',
+        },
       });
-      
+
       expect(result.data[0].customerId).toBe('ALFKI');
       expect(result.data.length).toBe(1);
       expect(result.error).toBeNull();
@@ -101,9 +107,9 @@ describe('VystaReadonlyService', () => {
 
     it('should default test column to Empty when not provided', async () => {
       const result = await summaries.getAll();
-      
-      expect(result.data.length).toBeGreaterThan(1)
+
+      expect(result.data.length).toBeGreaterThan(1);
       expect(result.error).toBeNull();
     });
   });
-}); 
+});
