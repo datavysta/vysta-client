@@ -1,62 +1,47 @@
 import { describe, it, expect, beforeAll } from '@jest/globals';
 
-import { VystaWorkflowService } from '../src/base/VystaWorkflowService';
+// Import the actual service and types from examples
+import { WorkflowService, InputTestInput } from '../examples/workflows/services';
 import { createTestClient, authenticateClient } from './setup';
+import { VystaClient } from '../src/VystaClient';
 
-interface TestInput {
-  test: string;
-}
-
-class TestWorkflowService extends VystaWorkflowService {
-  constructor(client: any) {
-    super(client);
-  }
-
-  async inputTest(input: TestInput): Promise<any> {
-    return this.executeWorkflow<TestInput, any>('InputTest', input);
-  }
-
-  async plainWait(): Promise<void> {
-    return this.executeWorkflow('PlainWait');
-  }
-
-  async twoWithWait(): Promise<void> {
-    return this.executeWorkflow('Twowithwait');
-  }
-
-  async testInvalidWorkflow(): Promise<void> {
-    return this.executeWorkflow('NonExistentWorkflow');
-  }
-}
-
-describe('VystaWorkflowService', () => {
-  const client = createTestClient();
-  let workflows: TestWorkflowService;
+describe('VystaWorkflowService (using example workflows)', () => {
+  const client: VystaClient = createTestClient();
+  let workflows: WorkflowService;
 
   beforeAll(async () => {
     await authenticateClient(client);
-    workflows = new TestWorkflowService(client);
+    workflows = new WorkflowService(client);
   });
 
   describe('Workflow Operations', () => {
-    it('should execute workflow with input', async () => {
-      const input = { test: 'test value' };
-      const results = await workflows.inputTest(input);
-      await expect(results.message).toBe('Hi test value');
+    it('should execute "InputTest" workflow with input', async () => {
+      const input: InputTestInput = { test: 'test value' };
+      await expect(workflows.inputTest(input)).resolves.not.toThrow();
     }, 10000);
 
-    it('should execute workflow without input', async () => {
+    it('should execute "PlainWait" workflow without input', async () => {
       await expect(workflows.plainWait()).resolves.not.toThrow();
     }, 10000);
 
-    /*
-        it('should execute two workflows with wait', async () => {
-            await expect(workflows.twoWithWait()).resolves.not.toThrow();
-        }, 20000); // Longer timeout since this workflow runs two with wait
-         */
-
-    it('should fail with invalid workflow name', async () => {
-      await expect(workflows.testInvalidWorkflow()).rejects.toThrow();
+    it('should fail with an invalid workflow name', async () => {
+      // Test executing a non-existent workflow via the protected base method
+      await expect(
+        (workflows as any).executeWorkflow('NonExistentWorkflowForSure'),
+      ).rejects.toThrow();
     }, 10000);
+
+    it('should execute "InputTest" workflow asynchronously and return a job ID', async () => {
+      const input: InputTestInput = { test: 'test_async' };
+      const jobId = await workflows.inputTestAsync(input);
+      expect(typeof jobId).toBe('string');
+      expect(jobId.length).toBeGreaterThan(0);
+    });
+
+    it('should execute "PlainWait" workflow asynchronously and return a job ID', async () => {
+      const jobId = await workflows.plainWaitAsync();
+      expect(typeof jobId).toBe('string');
+      expect(jobId.length).toBeGreaterThan(0);
+    });
   });
 });

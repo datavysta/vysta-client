@@ -71,6 +71,7 @@
         // UI elements
         const logContainer = document.getElementById('logs');
         const runButton = document.getElementById('runWorkflows');
+        const runAsyncButton = document.getElementById('runWorkflowsAsync');
 
         function addLog(message, type = 'info') {
             const entry = document.createElement('div');
@@ -84,10 +85,12 @@
         async function init() {
             try {
                 runButton.disabled = true;
+                runAsyncButton.disabled = true;
                 addLog('Logging in...', 'info');
                 await client.login('test@datavysta.com', 'password');
                 addLog('Logged in successfully', 'success');
                 runButton.disabled = false;
+                runAsyncButton.disabled = false;
             } catch (error) {
                 addLog(`Login failed: ${error.message}`, 'error');
             }
@@ -96,6 +99,7 @@
         async function runWorkflows() {
             try {
                 runButton.disabled = true;
+                runAsyncButton.disabled = true;
 
                 // Execute workflow with input
                 addLog('Running input test workflow...', 'info');
@@ -110,17 +114,41 @@
                 addLog(`Workflow error: ${error.message}`, 'error');
             } finally {
                 runButton.disabled = false;
+                runAsyncButton.disabled = false;
+            }
+        }
+
+        async function runWorkflowsAsync() {
+            try {
+                runButton.disabled = true;
+                runAsyncButton.disabled = true;
+
+                // Execute workflow with input asynchronously
+                addLog('Running input test workflow asynchronously...', 'info');
+                // Assuming the WorkflowService class is updated to have an async version of inputTest
+                // For this example, let's call a new method in WorkflowService or adapt existing one
+                // We need to modify WorkflowService in services.ts for this to actually work
+                const jobId = await workflows.inputTestAsync({ test: 'example input async' });
+                addLog(`Input test workflow started asynchronously. Job ID: ${jobId}`, 'success');
+
+            } catch (error) {
+                addLog(`Async Workflow error: ${error.message}`, 'error');
+            } finally {
+                runButton.disabled = false;
+                runAsyncButton.disabled = false;
             }
         }
 
         // Initialize and expose run function
         init();
         window.runWorkflows = runWorkflows;
+        window.runWorkflowsAsync = runWorkflowsAsync;
     </script>
 </head>
 <body>
     <h1>Vysta Workflow Example</h1>
     <button id="runWorkflows" onclick="runWorkflows()">Run Workflows</button>
+    <button id="runWorkflowsAsync" onclick="runWorkflowsAsync()">Run Workflows Asynchronously</button>
     <div id="logs" class="log-container"></div>
 </body>
 </html> 

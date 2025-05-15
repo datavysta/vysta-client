@@ -684,4 +684,8 @@ await workflows.inputTest({ test: 'example' });
 
 // Execute workflow without input
 await workflows.plainWait();
+
+// Execute workflow asynchronously and get a Job ID
+const jobId = await workflows.inputTestAsync({ test: 'example async' });
+console.log('Workflow started asynchronously with Job ID:', jobId);
 ```

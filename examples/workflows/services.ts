@@ -14,7 +14,15 @@ export class WorkflowService extends VystaWorkflowService {
     return this.executeWorkflow<InputTestInput, void>('InputTest', input);
   }
 
+  async inputTestAsync(input: InputTestInput): Promise<string> {
+    return this.executeWorkflowAsync<InputTestInput>('InputTest', input);
+  }
+
   async plainWait(): Promise<void> {
     return this.executeWorkflow('PlainWait');
+  }
+
+  async plainWaitAsync(): Promise<string> {
+    return this.executeWorkflowAsync('PlainWait');
   }
 }
