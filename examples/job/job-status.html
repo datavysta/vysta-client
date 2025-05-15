@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vysta Job Status Example</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .log-container {
+            margin-top: 2rem;
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background: #f8f9fa;
+            min-height: 100px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+        }
+        .log-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .log-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .log-info {
+            background: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+        }
+        .log-processing {
+            background: #cce5ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background: #0066cc;
+            color: white;
+            cursor: pointer;
+            margin-right: 0.5rem;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+    <script type="module">
+        import { VystaClient } from '../../src/VystaClient';
+        import { WorkflowService } from '../workflows/services.ts';
+        import { VystaAdminJobService } from '../../src/VystaAdminJobService';
+        import { JobStatus } from '../../src/types';
+
+        // Initialize client
+        const client = new VystaClient({
+            baseUrl: 'http://localhost:8080',
+            debug: true
+        });
+
+        const workflowService = new WorkflowService(client);
+        const jobService = new VystaAdminJobService(client);
+
+        const logContainer = document.getElementById('logs');
+        const runJobButton = document.getElementById('runJob');
+        let currentJobId = null;
+        let pollingInterval = null;
+
+        function addLog(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type.toLowerCase()}`;
+            entry.textContent = message;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        async function login() {
+            try {
+                runJobButton.disabled = true;
+                addLog('Logging in...', 'info');
+                await client.login('test@datavysta.com', 'password');
+                addLog('Logged in successfully', 'success');
+                runJobButton.disabled = false;
+            } catch (error) {
+                addLog(`Login failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkJobStatus(jobId) {
+            if (!jobId) return;
+            try {
+                addLog(`Checking status for job ID: ${jobId}...`, 'info');
+                const jobSummary = await jobService.getJobSummary(jobId);
+                addLog(`Job ID: ${jobSummary.id} - Status: ${jobSummary.status}`, `log-${jobSummary.status.toLowerCase()}`);
+
+                if ([JobStatus.SUCCEEDED, JobStatus.FAILED, JobStatus.DELETED, JobStatus.STOPPED, JobStatus.DEAD].includes(jobSummary.status)) {
+                    if (pollingInterval) {
+                        clearInterval(pollingInterval);
+                        pollingInterval = null;
+                        addLog('Job reached terminal state. Polling stopped.', 'info');
+                        runJobButton.disabled = false;
+                    }
+                } else {
+                    runJobButton.disabled = true; // Keep button disabled while polling non-terminal states
+                }
+            } catch (error) {
+                addLog(`Error checking job status for ${jobId}: ${error.message}`, 'error');
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                    runJobButton.disabled = false;
+                }
+            }
+        }
+
+        async function startAndMonitorJob() {
+            if (pollingInterval) {
+                addLog('A job is already being monitored.', 'info');
+                return;
+            }
+            runJobButton.disabled = true;
+            try {
+                addLog('Starting "InputTest" workflow asynchronously...', 'info');
+                currentJobId = await workflowService.inputTestAsync({ test: 'job_status_example' });
+                addLog(`Workflow started. Job ID: ${currentJobId}`, 'success');
+
+                // Start polling
+                addLog('Starting job status polling...', 'info');
+                checkJobStatus(currentJobId); // Initial check
+                pollingInterval = setInterval(() => checkJobStatus(currentJobId), 5000); // Poll every 5 seconds
+
+            } catch (error) {
+                addLog(`Failed to start workflow or monitor job: ${error.message}`, 'error');
+                runJobButton.disabled = false;
+            }
+        }
+
+        // Initialize
+        login();
+        window.startAndMonitorJob = startAndMonitorJob;
+
+    </script>
+</head>
+<body>
+    <h1>Vysta Job Status Example</h1>
+    <p>This example starts an asynchronous workflow and then polls its status using the VystaAdminJobService.</p>
+    <button id="runJob" onclick="startAndMonitorJob()">Start Workflow & Monitor Job</button>
+    <div id="logs" class="log-container"></div>
+</body>
+</html> 

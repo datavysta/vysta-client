@@ -101,3 +101,36 @@ export interface Role {
   name: string;
   description?: string;
 }
+
+export enum JobStatus {
+  ENQUEUED = 'ENQUEUED',
+  FAILED = 'FAILED',
+  PROCESSING = 'PROCESSING',
+  SCHEDULED = 'SCHEDULED',
+  SUCCEEDED = 'SUCCEEDED',
+  DELETED = 'DELETED',
+  STOPPING = 'STOPPING',
+  STOPPED = 'STOPPED',
+  DEAD = 'DEAD',
+}
+
+export interface JobSummary {
+  id: string; // UUID from Persistable<UUID>
+  callerId?: string;
+  title?: string;
+  url?: string;
+  message?: string;
+  errormessage?: string;
+  jobStatusId: number; // short
+  status: JobStatus; // Uses the JobStatus enum
+  children: boolean;
+  userId?: string; // UUID
+  parentJobId?: string; // UUID
+  createdOn?: string; // ZonedDateTime (ISO 8601 string)
+  startedOn?: string; // ZonedDateTime (ISO 8601 string)
+  endedOn?: string; // ZonedDateTime (ISO 8601 string)
+  createdBy?: string; // UUID
+  modifiedBy?: string; // UUID
+  version?: number;
+  modifiedOn?: string; // ZonedDateTime (ISO 8601 string)
+}

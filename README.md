@@ -341,7 +341,7 @@ The client automatically handles different response types based on the Content-T
 
 This allows the same API methods to work with different response formats, making it more flexible when dealing with APIs that might return different types of data.
 
-See the [examples](examples/) directory for more detailed usage examples.
+Explore live demonstrations in our [Examples Hub](examples/index.html), showcasing various client features.
 
 ### CRUD Operations
 
@@ -689,3 +689,46 @@ await workflows.plainWait();
 const jobId = await workflows.inputTestAsync({ test: 'example async' });
 console.log('Workflow started asynchronously with Job ID:', jobId);
 ```
+
+### Job Service
+
+For retrieving the status and details of jobs, especially those initiated by asynchronous workflows, use the `VystaAdminJobService`.
+
+```typescript
+import { VystaClient, VystaAdminJobService, JobStatus, JobSummary, WorkflowService } from '@datavysta/vysta-client';
+
+// Assume client is already initialized and logged in
+// const client = new VystaClient(...);
+// await client.login(...);
+
+const workflowService = new WorkflowService(client);
+const jobService = new VystaAdminJobService(client);
+
+async function monitorJob() {
+  try {
+    // 1. Start an asynchronous workflow
+    const jobId = await workflowService.inputTestAsync({ test: 'monitoring_example' });
+    console.log('Workflow started, Job ID:', jobId);
+
+    // 2. Get the job summary
+    const jobSummary: JobSummary = await jobService.getJobSummary(jobId);
+    console.log('Job Status:', jobSummary.status);
+    console.log('Job Details:', jobSummary);
+
+    // You can poll the job status until it reaches a terminal state
+    if (jobSummary.status === JobStatus.SUCCEEDED) {
+      console.log('Job succeeded!', jobSummary.message);
+    } else if (jobSummary.status === JobStatus.FAILED) {
+      console.error('Job failed:', jobSummary.errormessage);
+    }
+    // Add further polling logic if needed
+
+  } catch (error) {
+    console.error('Error monitoring job:', error);
+  }
+}
+
+monitorJob();
+```
+
+The `JobSummary` interface provides detailed information about the job, and `JobStatus` is an enum representing the various states a job can be in.
