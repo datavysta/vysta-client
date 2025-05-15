@@ -1,6 +1,5 @@
 import { VystaAdminService } from './base/VystaAdminService.js';
 import { VystaClient } from './VystaClient.js';
-import { Role } from './types.js';
 
 export interface User {
   id: string;

@@ -1,8 +1,6 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
 
 import { VystaClient } from '../src/VystaClient.js';
-import { SignInInfo } from '../src/VystaAuth';
-import { createTestClient } from './setup';
 
 describe('OAuth Authentication', () => {
   let client: VystaClient;

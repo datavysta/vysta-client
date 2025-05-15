@@ -21,7 +21,8 @@ describe('CRUD Operations', () => {
       TEST_PRODUCTS.map(async id => {
         try {
           await products.delete(id);
-        } catch (e) {
+        } catch {
+          // Removed unused _e variable
           // Ignore if product doesn't exist
         }
       }),
@@ -132,7 +133,8 @@ describe('CRUD Operations', () => {
 
     it('should delete multiple products', async () => {
       // Create test products
-      const testProducts = await Promise.all([
+      await Promise.all([
+        // Ensure products are created before deleting
         products.create({
           productId: 200,
           productName: 'Test 1',

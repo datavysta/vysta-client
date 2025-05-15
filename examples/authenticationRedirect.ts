@@ -1,11 +1,8 @@
 import { VystaClient } from '../src/VystaClient';
-import { ProductService } from './querying/services';
 
 const client = new VystaClient({
   baseUrl: 'http://localhost:8080',
 });
-
-const products = new ProductService(client);
 
 // Get URL parameters
 const urlParams = new URLSearchParams(window.location.search);
@@ -16,7 +13,7 @@ if (token) {
   (async () => {
     console.log('[OAuth] Processing authentication redirect...');
     try {
-      const authResult = await client.exchangeToken(token);
+      await client.exchangeToken(token);
       console.log('[OAuth] Authentication successful, session initialized');
 
       // Log the intended redirect URL

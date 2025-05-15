@@ -1,5 +1,5 @@
 import { VystaClient } from '../VystaClient.js';
-import { QueryParams, FilterCondition, DataResult, FileType } from '../types.js';
+import { QueryParams, FilterCondition } from '../types.js';
 import { VystaReadonlyService } from './VystaReadonlyService.js';
 import { IDataService, PrimaryKeyType } from '../IDataService.js';
 

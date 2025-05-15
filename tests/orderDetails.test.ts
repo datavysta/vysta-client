@@ -25,7 +25,7 @@ describe('OrderDetails CRUD Operations', () => {
     for (const id of TEST_RECORDS) {
       try {
         await orderDetails.delete(id);
-      } catch (e) {
+      } catch {
         // Ignore if record doesn't exist
       }
     }
@@ -98,7 +98,7 @@ describe('OrderDetails CRUD Operations', () => {
           orderId: TEST_RECORDS[0].orderId,
           productId: TEST_RECORDS[0].productId,
         });
-      } catch (e) {
+      } catch {
         // Ignore delete errors
       }
 
@@ -141,7 +141,7 @@ describe('OrderDetails CRUD Operations', () => {
       for (const record of TEST_RECORDS) {
         try {
           await orderDetails.delete(record);
-        } catch (e) {
+        } catch {
           // Ignore delete errors
         }
       }
@@ -190,7 +190,7 @@ describe('OrderDetails CRUD Operations', () => {
           orderId: TEST_RECORDS[1].orderId,
           productId: TEST_RECORDS[1].productId,
         });
-      } catch (e) {
+      } catch {
         // Ignore delete errors
       }
 
@@ -226,7 +226,7 @@ describe('OrderDetails CRUD Operations', () => {
       for (const record of TEST_RECORDS) {
         try {
           await orderDetails.delete(record);
-        } catch (e) {
+        } catch {
           // Ignore delete errors
         }
       }

@@ -1,5 +1,5 @@
 import { VystaClient } from '../src/VystaClient.js';
-import { VystaAdminUserService, User, CreateUserData } from '../src/VystaAdminUserService.js';
+import { VystaAdminUserService, CreateUserData } from '../src/VystaAdminUserService.js';
 import { VystaRoleService } from '../src/VystaRoleService.js';
 import { createTestClient, authenticateClient } from './setup.js';
 import { Role } from '../src/types.js';
@@ -135,7 +135,6 @@ describe('VystaAdminUserService - User Management', () => {
   // Test user invitation functions
   describe('User Invitations', () => {
     let tempUserId: string | null = null;
-    let tempUser: User | null = null;
 
     // Create a test user for invitation tests
     beforeAll(async () => {
@@ -149,7 +148,6 @@ describe('VystaAdminUserService - User Management', () => {
       try {
         const user = await userService.createUser(testUser);
         tempUserId = user.id;
-        tempUser = user;
       } catch (error) {
         console.error('Failed to create test user for invitation tests:', error);
       }

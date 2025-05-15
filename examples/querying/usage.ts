@@ -1,5 +1,5 @@
 import { VystaClient } from '../../src/VystaClient';
-import { ProductService, CustomerService } from './services';
+import { ProductService } from './services';
 import { QueryParams } from '../../src/types';
 import { Product } from './types';
 
@@ -16,7 +16,6 @@ async function example() {
 
     // Initialize services
     const products = new ProductService(client);
-    const customers = new CustomerService(client);
 
     // Basic queries
     const allProducts = await products.getAll();
@@ -52,7 +51,7 @@ async function example() {
       productName: 'New Product',
       unitPrice: 29.99,
       unitsInStock: 100,
-      discontinued: 0,
+      discontinued: false,
     });
     console.log('Created product:', newProduct.productId);
 

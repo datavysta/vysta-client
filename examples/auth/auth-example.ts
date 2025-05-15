@@ -1,12 +1,8 @@
 import { VystaClient } from '../../src/VystaClient';
-import { SignInInfo } from '../../src/VystaAuth';
-import { ProductService } from '../querying/services';
 
 const client = new VystaClient({
   baseUrl: 'http://localhost:8080',
 });
-
-const products = new ProductService(client);
 
 // Create and append HTML elements
 const container = document.createElement('div');
@@ -120,7 +116,7 @@ if (token) {
   (async () => {
     console.log('[OAuth] Processing redirect with token...');
     try {
-      const authResult = await client.exchangeToken(token);
+      await client.exchangeToken(token);
       console.log('[OAuth] Token exchange successful');
 
       if (redirectUrl) {
@@ -152,7 +148,8 @@ async function checkAuthStatus() {
     authStatus.style.background = '#dcfce7';
     authStatus.style.color = '#166534';
     logoutButton.style.display = 'block';
-  } catch (error) {
+  } catch {
+    // Removed unused _error variable
     authStatus.textContent = 'Not authenticated';
     authStatus.style.background = '#fee2e2';
     authStatus.style.color = '#991b1b';

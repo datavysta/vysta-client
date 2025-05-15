@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect } from '@jest/globals';
 
 import { VystaClient } from '../src/VystaClient.js';
-import { AuthErrorHandler, TokenStorage, TokenKey } from '../src/VystaAuth';
+import { TokenStorage, TokenKey } from '../src/VystaAuth';
 import { TEST_CONFIG } from './config';
 import { Product } from '../examples/querying/types';
 
