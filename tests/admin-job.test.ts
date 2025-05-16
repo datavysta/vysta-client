@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from '@jest/globals';
 
 import { VystaAdminJobService } from '../src/VystaAdminJobService';
-import { JobStatus } from '../src/types';
+import { JobStatus } from '../src/enums';
 import { WorkflowService } from '../examples/workflows/services'; // Import example workflow service
 import { createTestClient, authenticateClient } from './setup';
 import { VystaClient } from '../src/VystaClient';

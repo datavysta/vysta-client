@@ -9,7 +9,8 @@ import { VystaAuth, TokenStorage, TokenKey, AuthErrorHandler } from './VystaAuth
 import { VystaRoleService } from './VystaRoleService.js';
 import { VystaPermissionService } from './VystaPermissionService.js';
 import { VystaAdminJobService } from './VystaAdminJobService.js';
-import type { Role, ObjectPermission, JobStatus, JobSummary } from './types.js';
+import { JobStatus } from './enums.js';
+import type { Role, ObjectPermission, JobSummary } from './types.js';
 import type {
   QueryParams,
   FilterOperator,
@@ -30,6 +31,8 @@ import type {
   FileResult,
   TusUploadOptions,
 } from './VystaFileService.js';
+import { VystaAdminUserService, CreateUserData, User } from './VystaAdminUserService.js';
+import { GetResponse } from './VystaClient.js';
 
 export {
   VystaClient,
@@ -76,4 +79,8 @@ export {
   // Job types
   JobStatus,
   JobSummary,
+  VystaAdminUserService,
+  CreateUserData,
+  User,
+  GetResponse,
 };
