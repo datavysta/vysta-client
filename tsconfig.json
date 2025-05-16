@@ -6,26 +6,25 @@
     "lib": ["es2018", "dom"],
     "declaration": true,
     "outDir": "./dist",
-    "rootDir": ".",
+    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@/*": ["./src/*"],
-      "@examples/*": ["./examples/*"]
+      "@/*": ["./src/*"]
     }
   },
   "ts-node": {
     "esm": true
   },
   "include": [
-    "src/**/*",
-    "examples/**/*",
-    "tests/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "tests",
+    "examples"
   ]
 } 
