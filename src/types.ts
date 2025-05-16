@@ -1,3 +1,5 @@
+import { JobStatus } from './enums.js';
+
 export interface Principal {
   userId: string;
   identityId: string;
@@ -100,18 +102,6 @@ export interface Role {
   id: string;
   name: string;
   description?: string;
-}
-
-export enum JobStatus {
-  ENQUEUED = 'ENQUEUED',
-  FAILED = 'FAILED',
-  PROCESSING = 'PROCESSING',
-  SCHEDULED = 'SCHEDULED',
-  SUCCEEDED = 'SUCCEEDED',
-  DELETED = 'DELETED',
-  STOPPING = 'STOPPING',
-  STOPPED = 'STOPPED',
-  DEAD = 'DEAD',
 }
 
 export interface JobSummary {
