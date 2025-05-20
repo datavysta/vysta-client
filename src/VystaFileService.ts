@@ -149,14 +149,10 @@ export class VystaFileService {
     try {
       const { path, id, name } = params;
 
-      const apiPath = `rest/filesystem/${encodeURIComponent(this.fileSystemName)}/upload`;
+      const apiPath = `rest/filesystem/${encodeURIComponent(this.fileSystemName)}/upload?id=${encodeURIComponent(id)}&path=${encodeURIComponent(path)}&name=${encodeURIComponent(name)}`;
       this.log(`Registering file with API path: ${apiPath}`);
       this.log(`Sending POST request to register file...`);
-      const data = await this.client.post<any>(apiPath, {
-        path,
-        id,
-        name,
-      });
+      const data = await this.client.post<any>(apiPath, {});
       this.log(`Received register file response:`, data);
       return {
         data,
