@@ -149,7 +149,25 @@ export class VystaFileService {
     try {
       const { path, id, name } = params;
 
-      const apiPath = `rest/filesystem/${encodeURIComponent(this.fileSystemName)}/upload?id=${encodeURIComponent(id)}&path=${encodeURIComponent(path)}&name=${encodeURIComponent(name)}`;
+      // Create the base path without query parameters
+      const basePath = `rest/filesystem/${encodeURIComponent(this.fileSystemName)}/upload`;
+
+      // Create a QueryParams object with inputProperties for the parameters
+      const queryParams = {
+        inputProperties: {
+          id,
+          path,
+          name,
+        },
+      };
+
+      const queryString = Object.entries(queryParams.inputProperties)
+        .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+        .join('&');
+
+      // Construct the API path with query parameters
+      const apiPath = `${basePath}?${queryString}`;
+
       this.log(`Registering file with API path: ${apiPath}`);
       this.log(`Sending POST request to register file...`);
       const data = await this.client.post<any>(apiPath, {});
