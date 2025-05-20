@@ -55,14 +55,32 @@ export class VystaClient {
 
     const queryParts: string[] = [];
 
-    if (params.select && Object.keys(params.select).length) {
-      if (Array.isArray(params.select)) {
-        queryParts.push(`select=${params.select.join(',')}`);
-      } else {
+    // Support string[], object mapping, or SelectColumn[] for select in query string (now with aggregate support in key)
+    if (params.select) {
+      if (Array.isArray(params.select) && params.select.length) {
+        if (typeof params.select[0] === 'string') {
+          queryParts.push(`select=${(params.select as string[]).join(',')}`);
+        } else if (typeof params.select[0] === 'object' && 'name' in params.select[0]) {
+          // SelectColumn[]: serialize to string[]
+          const selectStrings = this.serializeSelect(params.select) || [];
+          queryParts.push(`select=${selectStrings.join(',')}`);
+        } else {
+          throw new Error('Invalid select array format for query string endpoints');
+        }
+      } else if (typeof params.select === 'object' && !Array.isArray(params.select)) {
+        // Object mapping: { column or AGG(column): alias }
         const mappedSelect = Object.entries(params.select)
-          .map(([key, value]) => `${key}=${value}`)
+          .map(([key, value]) => {
+            if (typeof value !== 'string') {
+              throw new Error('Alias must be a string in select object mapping');
+            }
+            // Allow aggregate functions in key, e.g., SUM(amount)
+            return `${key}=${value}`;
+          })
           .join(',');
         queryParts.push(`select=${mappedSelect}`);
+      } else {
+        throw new Error('Only string[], SelectColumn[], or object mapping is supported for select in query string endpoints');
       }
     }
 
@@ -292,6 +310,29 @@ export class VystaClient {
     return this.auth.getUserProfile();
   }
 
+  private serializeSelect<T>(select: QueryParams<T>['select']): string[] | undefined {
+    if (!select) return undefined;
+    if (Array.isArray(select) && select.length && typeof select[0] === 'object' && 'name' in select[0]) {
+      // SelectColumn<T>[]
+      return (select as any[]).map((col: any) => {
+        let part = col.name;
+        if (col.aggregate) {
+          part = `${col.aggregate}(${part})`;
+        }
+        if (col.alias) {
+          part += `=${col.alias}`;
+        }
+        return part;
+      });
+    }
+    if (Array.isArray(select)) {
+      // string[] or Array<keyof T>
+      return select as string[];
+    }
+    // object mapping: { column: alias }
+    return Object.entries(select).map(([key, value]) => `${key}=${value}`);
+  }
+
   /**
    * Performs a POST request to query data using query parameters in the request body.
    * Supports both JSON data retrieval and file downloads.
@@ -304,12 +345,17 @@ export class VystaClient {
       const headers = await this.auth.getAuthHeaders();
       const url = this.getBackendUrl(`${path}/query`);
 
-      this.logRequest('POST', url, params);
+      const bodyParams = {
+        ...params,
+        select: params?.select ? this.serializeSelect(params.select) : undefined,
+      };
+
+      this.logRequest('POST', url, bodyParams);
 
       const response = await fetch(url, {
         method: 'POST',
         headers,
-        body: JSON.stringify(params || {}),
+        body: JSON.stringify(bodyParams),
       });
 
       if (!response.ok) {
@@ -345,12 +391,17 @@ export class VystaClient {
       const headers = await this.auth.getAuthHeaders(fileType);
       const url = this.getBackendUrl(`${path}/query`);
 
-      this.logRequest('POST', url, params);
+      const bodyParams = {
+        ...params,
+        select: params?.select ? this.serializeSelect(params.select) : undefined,
+      };
+
+      this.logRequest('POST', url, bodyParams);
 
       const response = await fetch(url, {
         method: 'POST',
         headers,
-        body: JSON.stringify(params || {}),
+        body: JSON.stringify(bodyParams),
       });
 
       if (!response.ok) {

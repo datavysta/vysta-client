@@ -2,7 +2,7 @@ import { ProductService, SupplierService } from '../examples/querying/services';
 import { createTestClient, authenticateClient } from './setup';
 import { IReadonlyDataService, IDataService } from '../src/IDataService';
 import { Product, Supplier } from '../examples/querying/types';
-import { FileType } from '../src/types';
+import { FileType, Aggregate, SelectColumn } from '../src/types';
 
 describe('Query Operations', () => {
   const client = createTestClient();
@@ -343,6 +343,53 @@ describe('Query Operations', () => {
       expect(result.data.length).toBeGreaterThan(0);
       expect(result.data[0].unitsInStock).toBeGreaterThan(0);
       expect(result.data[0].unitsOnOrder).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Select parameter (GET and POST)', () => {
+    it('GET: should support select as a single string column', async () => {
+      const result = await products.getAll({ select: ['productId'] });
+      expect(result.data.length).toBeGreaterThan(0);
+      expect(result.data[0].productId).toBeDefined();
+    });
+
+    it('GET: should support select as object mapping (alias)', async () => {
+      const result = await products.getAll({ select: { productId: 'id' } });
+      expect(result.data.length).toBeGreaterThan(0);
+      expect((result.data[0] as any).id).toBeDefined();
+    });
+
+    it('GET: should throw if select uses aggregate (SelectColumn[])', async () => {
+      await expect(products.getAll({ select: [{ name: 'unitPrice', aggregate: 'SUM', alias: 'total' }] as any })).rejects.toThrow();
+    });
+
+    it('POST /query: should support select as a single string column', async () => {
+      const result = await products.query({ select: ['productId'] });
+      expect(result.data.length).toBeGreaterThan(0);
+      expect(result.data[0].productId).toBeDefined();
+    });
+
+    it('POST /query: should support select as SelectColumn[] with aggregate/alias', async () => {
+      const select: SelectColumn<Product>[] = [
+        { name: 'unitPrice', aggregate: Aggregate.SUM, alias: 'total' },
+        { name: 'productId' },
+      ];
+      const result = await products.query({ select });
+      expect(result.data.length).toBeGreaterThan(0);
+      expect((result.data[0] as any).total).toBeDefined();
+    });
+
+    it('POST /query: should support select as string[] with aggregate and alias', async () => {
+      const result = await products.query({
+        select: [
+          'AVG(unitPrice)=avgUnitPrice',
+          'SUM(unitsInStock)=totalUnitsInStock',
+        ] as any,
+      });
+      expect(result.data.length).toBeGreaterThan(0);
+      const row = result.data[0] as any;
+      expect(row.avgUnitPrice).toBeDefined();
+      expect(row.totalUnitsInStock).toBeDefined();
     });
   });
 });

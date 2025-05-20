@@ -1,4 +1,4 @@
-import { JobStatus } from './enums.js';
+import { JobStatus, Aggregate } from './enums.js';
 
 export interface Principal {
   userId: string;
@@ -53,8 +53,16 @@ export type OrderBy<T> = {
   [K in keyof T]?: SortDirection;
 };
 
+export type SelectColumn<T> = {
+  name: keyof T;
+  alias?: string;
+  aggregate?: Aggregate;
+};
+
+// For GET: select can be SelectColumn<T>[], object mapping, or string[]
+// For POST: select should be SelectColumn<T>[]
 export type QueryParams<T> = {
-  select?: { [K in keyof T]?: string } | Array<keyof T>;
+  select?: SelectColumn<T>[] | { [K in keyof T]?: string } | Array<keyof T>;
   filters?: {
     [K in keyof T]?: FilterCondition;
   };
