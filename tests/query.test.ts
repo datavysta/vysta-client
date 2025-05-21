@@ -2,7 +2,8 @@ import { ProductService, SupplierService } from '../examples/querying/services';
 import { createTestClient, authenticateClient } from './setup';
 import { IReadonlyDataService, IDataService } from '../src/IDataService';
 import { Product, Supplier } from '../examples/querying/types';
-import { FileType, Aggregate, SelectColumn } from '../src/types';
+import { FileType, SelectColumn } from '../src/types';
+import { Aggregate } from '../src/enums';
 
 describe('Query Operations', () => {
   const client = createTestClient();

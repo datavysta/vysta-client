@@ -732,3 +732,35 @@ monitorJob();
 ```
 
 The `JobSummary` interface provides detailed information about the job, and `JobStatus` is an enum representing the various states a job can be in.
+
+### Aggregate Queries and Type-Safe Select
+
+You can use aggregate functions and aliases in your select queries. For type safety, use the exported `SelectColumn<T>` type and `Aggregate` enum:
+
+```typescript
+import { Aggregate, SelectColumn } from '@datavysta/vysta-client';
+
+const select: SelectColumn<Product>[] = [
+  { name: 'unitPrice', aggregate: Aggregate.AVG, alias: 'avgUnitPrice' },
+  { name: 'unitsInStock', aggregate: Aggregate.SUM, alias: 'totalUnitsInStock' },
+  { name: 'productId' },
+];
+
+const result = await products.query({ select });
+console.log(result.data[0].avgUnitPrice, result.data[0].totalUnitsInStock);
+```
+
+You can also use the string[] format for select, but this is less type-safe:
+
+```typescript
+const result = await products.query({
+  select: [
+    'AVG(unitPrice)=avgUnitPrice',
+    'SUM(unitsInStock)=totalUnitsInStock',
+    'productId',
+  ]
+});
+```
+
+- `Aggregate` and `SelectColumn` are exported from the package for ergonomic, type-safe aggregate queries.
+- For GET endpoints, you can use string[], object mapping, or SelectColumn[]. For POST endpoints, SelectColumn[] is recommended for type safety.
