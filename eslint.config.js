@@ -12,7 +12,9 @@ export default [
       '**/*.js.map',
       '**/*.d.ts',
       'jest.config.js',
-      'examples/vite.config.ts'
+      'examples/vite.config.ts',
+      'tests/',
+      'examples/',
     ]
   },
   {

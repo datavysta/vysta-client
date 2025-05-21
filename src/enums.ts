@@ -9,3 +9,11 @@ export enum JobStatus {
   STOPPED = 'STOPPED',
   DEAD = 'DEAD',
 }
+
+export enum Aggregate {
+  COUNT = 'COUNT',
+  SUM = 'SUM',
+  MIN = 'MIN',
+  MAX = 'MAX',
+  AVG = 'AVG',
+}
