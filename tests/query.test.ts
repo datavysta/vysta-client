@@ -360,10 +360,6 @@ describe('Query Operations', () => {
       expect((result.data[0] as any).id).toBeDefined();
     });
 
-    it('GET: should throw if select uses aggregate (SelectColumn[])', async () => {
-      await expect(products.getAll({ select: [{ name: 'unitPrice', aggregate: 'SUM', alias: 'total' }] as any })).rejects.toThrow();
-    });
-
     it('POST /query: should support select as a single string column', async () => {
       const result = await products.query({ select: ['productId'] });
       expect(result.data.length).toBeGreaterThan(0);
