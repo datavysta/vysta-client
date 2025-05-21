@@ -80,7 +80,9 @@ export class VystaClient {
           .join(',');
         queryParts.push(`select=${mappedSelect}`);
       } else {
-        throw new Error('Only string[], SelectColumn[], or object mapping is supported for select in query string endpoints');
+        throw new Error(
+          'Only string[], SelectColumn[], or object mapping is supported for select in query string endpoints',
+        );
       }
     }
 
@@ -312,7 +314,12 @@ export class VystaClient {
 
   private serializeSelect<T>(select: QueryParams<T>['select']): string[] | undefined {
     if (!select) return undefined;
-    if (Array.isArray(select) && select.length && typeof select[0] === 'object' && 'name' in select[0]) {
+    if (
+      Array.isArray(select) &&
+      select.length &&
+      typeof select[0] === 'object' &&
+      'name' in select[0]
+    ) {
       // SelectColumn<T>[]
       return (select as any[]).map((col: any) => {
         let part = col.name;
