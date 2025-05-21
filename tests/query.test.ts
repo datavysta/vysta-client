@@ -389,4 +389,61 @@ describe('Query Operations', () => {
       expect(row.totalUnitsInStock).toBeDefined();
     });
   });
+
+  describe('Sorting', () => {
+    it('should sort products by categoryId ascending and unitPrice descending', async () => {
+      const result = await products.getAll({
+        select: ['productId', 'categoryId', 'unitPrice'],
+        order: {
+          categoryId: 'asc',
+          unitPrice: 'desc',
+        },
+      });
+      expect(result.data.length).toBeGreaterThan(1);
+      // Check that the array is sorted by categoryId asc, then unitPrice desc
+      for (let i = 1; i < result.data.length; i++) {
+        const prev = result.data[i - 1];
+        const curr = result.data[i];
+        if ((prev.categoryId ?? 0) === (curr.categoryId ?? 0)) {
+          expect((prev.unitPrice ?? 0)).toBeGreaterThanOrEqual((curr.unitPrice ?? 0));
+        } else {
+          expect((prev.categoryId ?? 0)).toBeLessThanOrEqual((curr.categoryId ?? 0));
+        }
+      }
+    });
+  });
+
+  describe('Query with unitPrice and unitsInStock ascending, limit and offset', () => {
+    it('should query products with unitPrice and unitsInStock ascending, limit and offset', async () => {
+      const result = await products.query({
+        select: [
+          'productId',
+          'productName',
+          'unitPrice',
+          'unitsInStock',
+          'discontinued',
+        ],
+        limit: 50,
+        offset: 0,
+        order: {
+          unitPrice: 'asc',
+          unitsInStock: 'asc',
+        },
+        recordCount: true,
+      });
+      expect(result.data.length).toBeGreaterThan(0);
+      expect(result.data.length).toBeLessThanOrEqual(50);
+      expect(result.count).toBeDefined();
+      // Check sorting: unitPrice asc, then unitsInStock asc
+      for (let i = 1; i < result.data.length; i++) {
+        const prev = result.data[i - 1];
+        const curr = result.data[i];
+        if ((prev.unitPrice ?? 0) === (curr.unitPrice ?? 0)) {
+          expect((prev.unitsInStock ?? 0)).toBeLessThanOrEqual((curr.unitsInStock ?? 0));
+        } else {
+          expect((prev.unitPrice ?? 0)).toBeLessThanOrEqual((curr.unitPrice ?? 0));
+        }
+      }
+    });
+  });
 });
