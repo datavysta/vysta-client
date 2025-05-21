@@ -1,6 +1,6 @@
 {
   "name": "@datavysta/vysta-client",
-  "version": "1.0.32",
+  "version": "1.0.33",
   "description": "TypeScript client for Vysta APIs",
   "type": "module",
   "main": "dist/index.js",
