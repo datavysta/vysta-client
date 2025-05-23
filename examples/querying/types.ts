@@ -64,3 +64,9 @@ export interface OrderDetails {
   quantity: number;
   discount: number;
 }
+
+export interface CustomerSummary {
+  customerId?: string;
+  count?: number;
+  companyName?: string;
+}

@@ -302,4 +302,30 @@ export class VystaAuth {
       throw error;
     }
   }
+
+  /**
+   * Initiates a signup request for a new user.
+   * @param email - The user's email address
+   * @param redirectUrl - The URL to redirect the user after signup
+   * @returns Resolves if the signup request was successful
+   */
+  async signup(email: string, redirectUrl: string): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/auth/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, redirectUrl }),
+      });
+      if (!response.ok) {
+        throw new Error(`Signup failed: ${response.statusText}`);
+      }
+      // No body expected on success
+      return;
+    } catch (error) {
+      this.errorHandler.onError(error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
+  }
 }

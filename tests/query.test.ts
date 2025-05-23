@@ -1,7 +1,7 @@
-import { ProductService, SupplierService } from '../examples/querying/services';
+import { ProductService, SupplierService, CustomerSummaryService } from '../examples/querying/services';
 import { createTestClient, authenticateClient } from './setup';
 import { IReadonlyDataService, IDataService } from '../src/IDataService';
-import { Product, Supplier } from '../examples/querying/types';
+import { Product, Supplier, CustomerSummary } from '../examples/querying/types';
 import { FileType, SelectColumn } from '../src/types';
 import { Aggregate } from '../src/enums';
 
@@ -9,11 +9,13 @@ describe('Query Operations', () => {
   const client = createTestClient();
   let products: IDataService<Product>;
   let suppliers: IReadonlyDataService<Supplier>;
+  let customerSummaries: CustomerSummaryService;
 
   beforeAll(async () => {
     await authenticateClient(client);
     products = new ProductService(client);
     suppliers = new SupplierService(client);
+    customerSummaries = new CustomerSummaryService(client);
   });
 
   beforeEach(async () => {
@@ -387,6 +389,111 @@ describe('Query Operations', () => {
       const row = result.data[0] as any;
       expect(row.avgUnitPrice).toBeDefined();
       expect(row.totalUnitsInStock).toBeDefined();
+    });
+  });
+
+  describe('Sorting', () => {
+    it('should sort products by categoryId ascending and unitPrice descending', async () => {
+      const result = await products.getAll({
+        select: ['productId', 'categoryId', 'unitPrice'],
+        order: {
+          categoryId: 'asc',
+          unitPrice: 'desc',
+        },
+      });
+      expect(result.data.length).toBeGreaterThan(1);
+      // Check that the array is sorted by categoryId asc, then unitPrice desc
+      for (let i = 1; i < result.data.length; i++) {
+        const prev = result.data[i - 1];
+        const curr = result.data[i];
+        if ((prev.categoryId ?? 0) === (curr.categoryId ?? 0)) {
+          expect((prev.unitPrice ?? 0)).toBeGreaterThanOrEqual((curr.unitPrice ?? 0));
+        } else {
+          expect((prev.categoryId ?? 0)).toBeLessThanOrEqual((curr.categoryId ?? 0));
+        }
+      }
+    });
+  });
+
+  describe('Query with unitPrice and unitsInStock ascending, limit and offset', () => {
+    it('should query products with unitPrice and unitsInStock ascending, limit and offset', async () => {
+      const result = await products.query({
+        select: [
+          'productId',
+          'productName',
+          'unitPrice',
+          'unitsInStock',
+          'discontinued',
+        ],
+        limit: 50,
+        offset: 0,
+        order: {
+          unitPrice: 'asc',
+          unitsInStock: 'asc',
+        },
+        recordCount: true,
+      });
+      expect(result.data.length).toBeGreaterThan(0);
+      expect(result.data.length).toBeLessThanOrEqual(50);
+      expect(result.count).toBeDefined();
+      // Check sorting: unitPrice asc, then unitsInStock asc
+      for (let i = 1; i < result.data.length; i++) {
+        const prev = result.data[i - 1];
+        const curr = result.data[i];
+        if ((prev.unitPrice ?? 0) === (curr.unitPrice ?? 0)) {
+          expect((prev.unitsInStock ?? 0)).toBeLessThanOrEqual((curr.unitsInStock ?? 0));
+        } else {
+          expect((prev.unitPrice ?? 0)).toBeLessThanOrEqual((curr.unitPrice ?? 0));
+        }
+      }
+    });
+  });
+
+  describe('Record Count with Conditions and Input Properties', () => {
+    it('should return matching record count when using both conditions and input properties', async () => {
+      // Test case for CustomerSummary endpoint with conditions and inputProperties
+      // This reproduces the issue where recordCount returns 7 but actual results return 1
+      const result = await customerSummaries.query({
+        select: ['customerId', 'companyName', 'count'],
+        limit: 50,
+        offset: 0,
+        order: {
+          customerId: 'asc',
+        },
+        conditions: [
+          {
+            id: '4602c8bc-8d2f-48fa-9616-aad4d78ee99f',
+            type: 'Group',
+            operator: 'AND',
+            children: [
+              {
+                id: 'f55ac34d-d933-4171-b07f-8888529c8bee',
+                type: 'Expression',
+                comparisonOperator: 'Like',
+                children: [],
+                valid: true,
+                active: true,
+                columnName: 'companyName',
+                values: ['B%'],
+              },
+            ],
+            valid: true,
+            active: true,
+            values: [],
+          },
+        ],
+        inputProperties: {
+          id: 'BLAUS',
+        },
+        recordCount: true,
+      });
+
+      // The bug: result.data.length returns 1 but result.count returns 7
+      // Both should be 1 when using conditions and inputProperties together
+      expect(result.data.length).toBe(1);
+      expect(result.count).toBe(result.data.length); // This should pass but currently fails
+      expect(result.data[0].customerId).toBe('BLAUS');
+      expect(result.data[0].companyName).toMatch(/^B/); // Should start with 'B'
     });
   });
 });
