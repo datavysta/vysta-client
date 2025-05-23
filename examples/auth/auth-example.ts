@@ -36,12 +36,28 @@ container.innerHTML = `
     </form>
 
     <!-- OAuth Providers -->
-    <div id="providers" style="display: flex; flex-direction: column; gap: 10px;">
-      <!-- Dynamically added provider buttons will go here -->
-    </div>
+    <div id="providers" style="display: flex; flex-direction: column; gap: 10px;"></div>
 
     <!-- Status Messages -->
     <div id="status" style="margin-top: 20px; padding: 10px;"></div>
+
+    <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+    <!-- Signup Form -->
+    <div style="margin-bottom: 0;">
+      <form id="signupForm" style="margin-bottom: 10px;">
+        <div style="margin-bottom: 10px;">
+          <label>Signup Email:</label>
+          <input type="email" id="signupEmail" required style="width: 100%; padding: 8px;">
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label>Redirect URL:</label>
+          <input type="url" id="signupRedirectUrl" required value="https://example.com/redirect" style="width: 100%; padding: 8px;">
+        </div>
+        <button type="submit" style="width: 100%; padding: 10px; background: #22c55e; color: white; border: none; border-radius: 4px;">
+          Sign up
+        </button>
+      </form>
+    </div>
   </div>
 `;
 
@@ -52,6 +68,9 @@ const loginForm = document.getElementById('loginForm') as HTMLFormElement;
 const providersContainer = document.getElementById('providers')!;
 const statusDiv = document.getElementById('status')!;
 const logoutButton = document.getElementById('logoutButton')!;
+const signupForm = document.getElementById('signupForm') as HTMLFormElement;
+const signupEmail = document.getElementById('signupEmail') as HTMLInputElement;
+const signupRedirectUrl = document.getElementById('signupRedirectUrl') as HTMLInputElement;
 
 // Helper function to show status
 function showStatus(message: string, isError = false) {
@@ -159,3 +178,17 @@ async function checkAuthStatus() {
 
 // Call it on load and after successful login
 checkAuthStatus();
+
+// Handle signup
+signupForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = signupEmail.value;
+  const redirectUrl = signupRedirectUrl.value;
+  try {
+    showStatus('Sending signup request...');
+    await client['auth'].signup(email, redirectUrl);
+    showStatus('Signup request sent! Check your email for further instructions.');
+  } catch (error) {
+    showStatus(`Signup failed: ${error instanceof Error ? error.message : String(error)}`, true);
+  }
+});
