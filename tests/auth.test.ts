@@ -139,4 +139,14 @@ describe('Authentication', () => {
       await expect(client.getUserProfile()).rejects.toThrow();
     });
   });
+
+  describe('Signup', () => {
+    it.skip('should successfully send a signup request (200 OK, no body)', async () => {
+      const client = createClient();
+      // Use a unique email to avoid conflicts in real systems
+      const email = `test+${Date.now()}@example.com`;
+      const redirectUrl = 'https://example.com/redirect';
+      await expect(client['auth'].signup(email, redirectUrl)).resolves.toBeUndefined();
+    });
+  });
 });
