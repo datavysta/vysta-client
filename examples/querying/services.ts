@@ -1,6 +1,7 @@
 import { VystaService } from '../../src/base/VystaService';
+import { VystaReadonlyService } from '../../src/base/VystaReadonlyService';
 import { VystaClient } from '../../src/VystaClient';
-import { Customer, Order, Product, Supplier, OrderDetails } from './types';
+import { Customer, Order, Product, Supplier, OrderDetails, CustomerSummary } from './types';
 
 interface ProductWithValue extends Product {
   _totalStockValue: number;
@@ -50,5 +51,11 @@ export class OrderDetailsService extends VystaService<OrderDetails> {
     super(client, 'Northwinds', 'OrderDetails', {
       primaryKey: ['orderId', 'productId'],
     });
+  }
+}
+
+export class CustomerSummaryService extends VystaReadonlyService<CustomerSummary> {
+  constructor(client: VystaClient) {
+    super(client, 'Northwinds', 'CustomerSummary');
   }
 }

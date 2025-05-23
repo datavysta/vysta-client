@@ -1,7 +1,7 @@
-import { ProductService, SupplierService } from '../examples/querying/services';
+import { ProductService, SupplierService, CustomerSummaryService } from '../examples/querying/services';
 import { createTestClient, authenticateClient } from './setup';
 import { IReadonlyDataService, IDataService } from '../src/IDataService';
-import { Product, Supplier } from '../examples/querying/types';
+import { Product, Supplier, CustomerSummary } from '../examples/querying/types';
 import { FileType, SelectColumn } from '../src/types';
 import { Aggregate } from '../src/enums';
 
@@ -9,11 +9,13 @@ describe('Query Operations', () => {
   const client = createTestClient();
   let products: IDataService<Product>;
   let suppliers: IReadonlyDataService<Supplier>;
+  let customerSummaries: CustomerSummaryService;
 
   beforeAll(async () => {
     await authenticateClient(client);
     products = new ProductService(client);
     suppliers = new SupplierService(client);
+    customerSummaries = new CustomerSummaryService(client);
   });
 
   beforeEach(async () => {
@@ -444,6 +446,54 @@ describe('Query Operations', () => {
           expect((prev.unitPrice ?? 0)).toBeLessThanOrEqual((curr.unitPrice ?? 0));
         }
       }
+    });
+  });
+
+  describe('Record Count with Conditions and Input Properties', () => {
+    it('should return matching record count when using both conditions and input properties', async () => {
+      // Test case for CustomerSummary endpoint with conditions and inputProperties
+      // This reproduces the issue where recordCount returns 7 but actual results return 1
+      const result = await customerSummaries.query({
+        select: ['customerId', 'companyName', 'count'],
+        limit: 50,
+        offset: 0,
+        order: {
+          customerId: 'asc',
+        },
+        conditions: [
+          {
+            id: '4602c8bc-8d2f-48fa-9616-aad4d78ee99f',
+            type: 'Group',
+            operator: 'AND',
+            children: [
+              {
+                id: 'f55ac34d-d933-4171-b07f-8888529c8bee',
+                type: 'Expression',
+                comparisonOperator: 'Like',
+                children: [],
+                valid: true,
+                active: true,
+                columnName: 'companyName',
+                values: ['B%'],
+              },
+            ],
+            valid: true,
+            active: true,
+            values: [],
+          },
+        ],
+        inputProperties: {
+          id: 'BLAUS',
+        },
+        recordCount: true,
+      });
+
+      // The bug: result.data.length returns 1 but result.count returns 7
+      // Both should be 1 when using conditions and inputProperties together
+      expect(result.data.length).toBe(1);
+      expect(result.count).toBe(result.data.length); // This should pass but currently fails
+      expect(result.data[0].customerId).toBe('BLAUS');
+      expect(result.data[0].companyName).toMatch(/^B/); // Should start with 'B'
     });
   });
 });
