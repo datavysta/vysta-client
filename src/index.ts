@@ -35,6 +35,7 @@ import type {
   TusUploadOptions,
 } from './VystaFileService.js';
 import { VystaAdminUserService, CreateUserData, User } from './VystaAdminUserService.js';
+import { VystaTimezoneService, Timezone } from './VystaTimezoneService.js';
 import { GetResponse } from './VystaClient.js';
 
 export {
@@ -87,5 +88,7 @@ export {
   VystaAdminUserService,
   CreateUserData,
   User,
+  VystaTimezoneService,
+  Timezone,
   GetResponse,
 };
