@@ -72,7 +72,7 @@ class IndexedDBStorage implements CacheStorage {
       });
     } catch (error) {
       // Fallback to memory storage if IndexedDB fails
-      console.warn('[VystaCache] IndexedDB not available, falling back to memory storage');
+      console.warn('[VystaCache] IndexedDB not available, falling back to memory storage:', error);
       const memoryStorage = new MemoryStorage(this.config);
       Object.setPrototypeOf(this, Object.getPrototypeOf(memoryStorage));
       Object.assign(this, memoryStorage);

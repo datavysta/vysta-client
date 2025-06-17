@@ -1,4 +1,3 @@
-import { QueryParams } from '../types.js';
 import { Range } from './CacheStorage.js';
 
 /**
@@ -16,8 +15,11 @@ export function generateCacheKey(
     return baseKey;
   }
 
-  // For range-aware caching, exclude offset and limit from key generation
-  const { offset, limit, ...cacheableParams } = params;
+  // For range-aware caching, exclude offset and limit from key generation (ignored vars prefixed with _)
+  const { offset: _offset, limit: _limit, ...cacheableParams } = params;
+  // Explicitly mark unused destructured vars to satisfy eslint
+  void _offset;
+  void _limit;
 
   if (Object.keys(cacheableParams).length === 0) {
     return baseKey;

@@ -4,7 +4,6 @@ import { IReadonlyDataService } from '../IDataService.js';
 import { CacheStorage, CacheEntry } from '../cache/CacheStorage.js';
 import {
   generateCacheKey,
-  isRangeCovered,
   extractRangeFromCache,
   mergeRangeIntoCache,
   generateInvalidationPattern,
