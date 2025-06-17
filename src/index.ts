@@ -35,6 +35,7 @@ import type {
   TusUploadOptions,
 } from './VystaFileService.js';
 import { VystaAdminUserService, CreateUserData, User } from './VystaAdminUserService.js';
+import { VystaTimezoneService, Timezone } from './VystaTimezoneService.js';
 import { GetResponse } from './VystaClient.js';
 import { CacheStorage, CacheEntry, CacheConfig, Range } from './cache/CacheStorage.js';
 import { DefaultCacheStorage } from './cache/DefaultCacheStorage.js';
@@ -89,6 +90,8 @@ export {
   VystaAdminUserService,
   CreateUserData,
   User,
+  VystaTimezoneService,
+  Timezone,
   GetResponse,
   // Cache system
   CacheStorage,
