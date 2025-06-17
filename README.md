@@ -562,6 +562,17 @@ export interface ObjectPermission {
 }
 ```
 
+### Timezone Service
+
+The `VystaTimezoneService` lets you retrieve the list of supported time-zones for your UI or settings pages.
+
+```typescript
+const timezones = await new VystaTimezoneService(client).getAllTimezones();
+// → [{ id: 'Europe/Paris', displayName: 'Paris (Europe)' }, …]
+```
+
+Authentication is required; otherwise the call throws "Not authenticated".
+
 ## Query Operators
 
 The following operators are supported for filtering:
