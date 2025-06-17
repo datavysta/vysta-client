@@ -105,4 +105,13 @@ describe('Vysta cache layer', () => {
     await service.query({ select: [{ name: 'id', aggregate: 'AVG', alias: 'avgId' }] as any });
     expect(fetchSpy).toHaveBeenCalledTimes(1); // cached hit, no extra fetch
   });
+
+  test('order direction creates new cache entry', async () => {
+    await service.getAll({ order: { id: 'asc' }, limit: 5 });
+    await service.getAll({ order: { id: 'asc' }, limit: 5 });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    await service.getAll({ order: { id: 'desc' }, limit: 5 });
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
 }); 
