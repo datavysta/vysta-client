@@ -35,8 +35,13 @@
   "dependencies": {
     "@uppy/dashboard": "^4.3.2",
     "cross-fetch": "^4.0.0",
-    "idb": "^8.0.3",
     "jwt-decode": "^4.0.0"
+  },
+  "peerDependencies": {
+    "idb": "^8"
+  },
+  "optionalDependencies": {
+    "idb": "^8.0.3"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",

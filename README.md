@@ -61,6 +61,61 @@ const client = new VystaClient({
 });
 ```
 
+### Caching (Optional)
+
+The Vysta client ships with a lightweight, **range-aware cache** (similar in spirit to React-Query) that can dramatically cut round-trips when you scroll, paginate or repeatedly query the same data.
+
+• Default storage is **IndexedDB** in the browser (via the [`idb`](https://github.com/jakearchibald/idb) helper) and an in-memory `Map` in Node.js.  
+• Caching is **disabled by default** – enable it per client or swap in your own `CacheStorage` implementation.
+
+```typescript
+import { VystaClient, DefaultCacheStorage } from '@datavysta/vysta-client';
+
+// 1) Turn caching on with defaults (TTL = 5 min, maxSize = 1000 entries)
+const client = new VystaClient({
+  baseUrl: 'https://api.datavysta.com',
+  cache: true
+});
+
+// 2) Fine-tune TTL / size
+const client = new VystaClient({
+  baseUrl: '…',
+  cache: {
+    ttl: 10 * 60 * 1000,   // 10 minutes
+    maxSize: 500           // keep newest 500 entries (LRU)
+  }
+});
+
+// 3) Provide a completely custom cache backend
+class RedisCache implements CacheStorage { /* … */ }
+const client = new VystaClient({
+  baseUrl: '…',
+  cache: new RedisCache()
+});
+```
+
+#### Manual cache control
+```typescript
+await client.clearCache();                              // everything
+await client.clearCacheForEntity('Northwinds', 'Products');
+
+const products = new ProductService(client);
+await products.refreshCache();                          // this service only
+```
+
+#### How range-aware caching works
+1. **One entry per logical query** – the cache key uses connection + entity + method (`getAll`, `query`, …) + _filters/sort_.  
+   Pagination values (`offset`, `limit`) are _excluded_, so all pages merge into the same entry.
+2. Each entry stores: `records[]`, `loadedRanges[]` and `totalCount`.  
+3. When you fetch e.g. rows `40-60`, the cache either:
+   • slices and returns instantly if that range is already covered, or  
+   • fetches only the missing rows, merges them into the entry, and updates the range list.
+4. Subsequent requests for any previously-loaded window are served in-memory (≈1-2 ms).
+
+This strategy means that after a single linear scroll through an infinite-scroll grid, **no further network calls are made** for that dataset until the TTL expires or you invalidate the cache.
+
+> **Note**: If you bundle for browsers you'll need `idb` as a dependency, which is already declared in `peerDependencies`. Simply `npm install` in your project and most bundlers will include it automatically.
+
 ### Creating a Service
 
 The library provides two base service classes:
