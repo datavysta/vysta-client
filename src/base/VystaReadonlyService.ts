@@ -83,6 +83,24 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
   }
 
   /**
+   * Helper that computes inferred totalCount (when API doesn't return it) and writes range to cache.
+   */
+  private async storeRange(
+    cache: CacheStorage,
+    cacheKey: string,
+    data: T[],
+    offset: number,
+    limit: number,
+    recordCount: number | undefined,
+    existingEntry: CacheEntry<T> | null,
+  ): Promise<void> {
+    const inferredCount =
+      recordCount ?? (data.length < limit ? offset + data.length : undefined);
+
+    await this.updateCache(cache, cacheKey, data, offset, inferredCount, existingEntry);
+  }
+
+  /**
    * Retrieves all records matching the optional query parameters
    * @param params - Optional query parameters for filtering, sorting, and pagination
    * @returns A promise that resolves to a DataResult containing the records and total count
@@ -121,11 +139,12 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
 
       // Update cache
       if (response.data) {
-        await this.updateCache(
+        await this.storeRange(
           cache,
           cacheKey,
           response.data,
           offset,
+          limit,
           response.recordCount,
           cachedEntry,
         );
@@ -186,11 +205,12 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
 
       // Update cache
       if (response.data) {
-        await this.updateCache(
+        await this.storeRange(
           cache,
           cacheKey,
           response.data,
           offset,
+          limit,
           response.recordCount,
           cachedEntry,
         );
