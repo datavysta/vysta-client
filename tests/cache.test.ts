@@ -114,4 +114,24 @@ describe('Vysta cache layer', () => {
     await service.getAll({ order: { id: 'desc' }, limit: 5 });
     expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
+
+  test('inputProperties changes create new cache entry', async () => {
+    await service.query({ inputProperties: { foo: 'a' } });
+    await service.query({ inputProperties: { foo: 'a' } });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    await service.query({ inputProperties: { foo: 'b' } });
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
+  test('conditions value change creates new cache entry', async () => {
+    const baseCond = (val: string) => [{ column: 'name', comparisonOperator: 'Like', values: [val] } as any];
+
+    await service.query({ conditions: baseCond('Bon%') });
+    await service.query({ conditions: baseCond('Bon%') });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    await service.query({ conditions: baseCond('Q%') });
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
 }); 
