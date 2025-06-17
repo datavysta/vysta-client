@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Vysta AG Grid Example</title>
+    <meta charset="UTF-8">
+    <title>Vysta AG Grid with Caching Demo</title>
     <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@33.0.1/dist/ag-grid-community.min.js"></script>
     <style>
         html, body {
@@ -19,6 +20,32 @@
             flex-direction: column;
             flex: 1 1 auto;
             height: 100%;
+        }
+        #cacheControls {
+            background: #e8f4f8;
+            border-bottom: 1px solid #ccc;
+            padding: 12px 16px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        #cacheControls button {
+            padding: 6px 12px;
+            border: 1px solid #0066cc;
+            background: white;
+            color: #0066cc;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        #cacheControls button:hover {
+            background: #f0f8ff;
+        }
+        #cacheStatus {
+            margin-left: auto;
+            font-size: 13px;
+            color: #666;
         }
         #myGrid {
             width: 100%;
@@ -47,6 +74,14 @@
 </head>
 <body>
     <div id="mainContainer">
+        <div id="cacheControls">
+            <strong>🚀 Cache Demo:</strong>
+            <button onclick="clearAllCache()">Clear All Cache</button>
+            <button onclick="clearProductCache()">Clear Product Cache</button>
+            <button onclick="refreshGrid()">Refresh Grid</button>
+            <button onclick="showCacheInfo()">Show Cache Info</button>
+            <div id="cacheStatus">Cache enabled (2min TTL) - Scroll to see caching in action!</div>
+        </div>
         <div id="myGrid"></div>
         <div id="footerTotals">Loading totals...</div>
     </div>
@@ -57,7 +92,11 @@
 
         const client = new VystaClient({ 
             baseUrl: 'http://localhost:8080',
-            debug: false
+            debug: true,
+            cache: {
+                ttl: 2 * 60 * 1000, // 2 minutes TTL for demo
+                maxSize: 100 // Limit cache size for demo
+            }
         });
 
         const services = {
@@ -126,7 +165,17 @@
                             });
                         }
 
+                        // Time the request for cache demo
+                        const startTime = performance.now();
                         const result = await services.products.getAll(queryParams);
+                        const endTime = performance.now();
+                        const duration = Math.round(endTime - startTime);
+
+                        // Log cache performance for demo
+                        console.log(`🔍 Data fetch (rows ${startRow}-${endRow}): ${duration}ms`);
+                        
+                        // Update cache status
+                        updateCacheStatus(`Last fetch: ${duration}ms (rows ${startRow}-${endRow})`);
                         
                         // Use the count from the result for total rows
                         // If count is -1, AG Grid will keep requesting more rows
@@ -142,10 +191,12 @@
         };
 
         // Initialize grid
+        let gridApi;
         async function initGrid() {
             await services.init();
             const gridDiv = document.querySelector('#myGrid');
-            agGrid.createGrid(gridDiv, gridOptions);
+            const gridResult = agGrid.createGrid(gridDiv, gridOptions);
+            gridApi = gridResult;
 
             // Fetch aggregates for footer
             const aggregateResult = await client.query('rest/connections/Northwinds/Products', {
@@ -163,6 +214,46 @@
         }
 
         initGrid();
+
+        // Global functions for cache demo buttons
+        window.clearAllCache = async function() {
+            await client.clearCache();
+            updateCacheStatus('✅ All cache cleared');
+            console.log('🧹 All cache cleared');
+        };
+
+        window.clearProductCache = async function() {
+            await services.products.refreshCache();
+            updateCacheStatus('✅ Product cache cleared');
+            console.log('🧹 Product cache cleared');
+        };
+
+        window.refreshGrid = function() {
+            gridApi?.purgeInfiniteCache();
+            updateCacheStatus('🔄 Grid refreshed');
+            console.log('🔄 Grid data refreshed');
+        };
+
+        window.showCacheInfo = async function() {
+            const cache = client.getCache();
+            if (cache) {
+                const size = await cache.size();
+                alert(`Cache Info:\n\n• Storage: ${size} entries\n• TTL: 2 minutes\n• Max Size: 100 entries\n\nCheck browser console for detailed cache performance logs.`);
+            } else {
+                alert('Caching is disabled');
+            }
+        };
+
+        function updateCacheStatus(message) {
+            const statusEl = document.getElementById('cacheStatus');
+            if (statusEl) {
+                statusEl.textContent = message;
+                // Reset to default message after 3 seconds
+                setTimeout(() => {
+                    statusEl.textContent = 'Cache enabled (2min TTL) - Scroll to see caching in action!';
+                }, 3000);
+            }
+        }
     </script>
 </body>
 </html> 

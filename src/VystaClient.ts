@@ -1,6 +1,8 @@
 import { AuthErrorHandler, SignInInfo, TokenStorage, VystaAuth } from './VystaAuth.js';
 import type { FilterCondition, QueryParams, UserProfile } from './types.js';
 import { AuthResult, FileType } from './types.js';
+import { CacheStorage, CacheConfig } from './cache/CacheStorage.js';
+import { DefaultCacheStorage } from './cache/DefaultCacheStorage.js';
 
 export interface GetResponse<T> {
   data: T[];
@@ -12,15 +14,35 @@ export interface VystaConfig {
   storage?: TokenStorage;
   errorHandler?: AuthErrorHandler;
   debug?: boolean;
+  cache?: CacheStorage | CacheConfig | boolean;
 }
 
 export class VystaClient {
   private auth: VystaAuth;
   private debug: boolean;
+  private cache: CacheStorage | null = null;
 
   constructor(private config: VystaConfig) {
     this.debug = config.debug || false;
     this.auth = new VystaAuth(this.config.baseUrl, config.storage, config.errorHandler);
+    this.initializeCache();
+  }
+
+  private initializeCache(): void {
+    if (!this.config.cache) {
+      return; // Caching disabled
+    }
+
+    if (typeof this.config.cache === 'boolean' && this.config.cache) {
+      // Use default cache with default config
+      this.cache = new DefaultCacheStorage();
+    } else if (typeof this.config.cache === 'object' && 'get' in this.config.cache) {
+      // Custom cache storage provided
+      this.cache = this.config.cache as CacheStorage;
+    } else if (typeof this.config.cache === 'object') {
+      // Cache config provided, use default storage with config
+      this.cache = new DefaultCacheStorage(this.config.cache as CacheConfig);
+    }
   }
 
   private log(...args: any[]) {
@@ -419,6 +441,32 @@ export class VystaClient {
     } catch (error) {
       this.log('Request failed:', error);
       throw error instanceof Error ? error : new Error(String(error));
+    }
+  }
+
+  /**
+   * Gets the cache instance if caching is enabled
+   */
+  getCache(): CacheStorage | null {
+    return this.cache;
+  }
+
+  /**
+   * Clears all cached data
+   */
+  async clearCache(): Promise<void> {
+    if (this.cache) {
+      await this.cache.clear();
+    }
+  }
+
+  /**
+   * Clears cache entries for a specific connection and entity
+   */
+  async clearCacheForEntity(connection: string, entity: string): Promise<void> {
+    if (this.cache) {
+      const pattern = `${connection}:${entity}:`;
+      await this.cache.deleteByPattern(pattern);
     }
   }
 
