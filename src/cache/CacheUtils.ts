@@ -75,10 +75,20 @@ function sortObjectKeys(obj: any): any {
 export function isRangeCovered(
   requestedOffset: number,
   requestedLimit: number,
-  loadedRanges: Range[]
+  loadedRanges: Range[],
+  totalCount?: number
 ): boolean {
   const requestedStart = requestedOffset;
-  const requestedEnd = requestedOffset + requestedLimit - 1;
+  let requestedEnd = requestedOffset + requestedLimit - 1;
+
+  if (typeof totalCount === 'number') {
+    // Cap the requested end to the last available record index
+    const maxIndex = totalCount - 1;
+    if (requestedStart > maxIndex) {
+      return false; // Requested range starts beyond available data
+    }
+    requestedEnd = Math.min(requestedEnd, maxIndex);
+  }
 
   for (const range of loadedRanges) {
     if (range.start <= requestedStart && range.end >= requestedEnd) {
@@ -96,16 +106,25 @@ export function extractRangeFromCache<T>(
   cachedRecords: T[],
   requestedOffset: number,
   requestedLimit: number,
-  loadedRanges: Range[]
+  loadedRanges: Range[],
+  totalCount?: number
 ): T[] | null {
-  if (!isRangeCovered(requestedOffset, requestedLimit, loadedRanges)) {
+  if (!isRangeCovered(requestedOffset, requestedLimit, loadedRanges, totalCount)) {
     return null;
   }
 
   const startIndex = requestedOffset;
-  const endIndex = Math.min(startIndex + requestedLimit, cachedRecords.length);
+  let endIndex = startIndex + requestedLimit;
+
+  if (typeof totalCount === 'number') {
+    endIndex = Math.min(endIndex, totalCount);
+  }
+
+  // Ensure we don't exceed the cached array length
+  endIndex = Math.min(endIndex, cachedRecords.length);
   
-  return cachedRecords.slice(startIndex, endIndex);
+  const slice = cachedRecords.slice(startIndex, endIndex).filter(record => record !== null);
+  return slice;
 }
 
 /**

@@ -103,7 +103,8 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
           cachedEntry.records,
           offset,
           limit,
-          cachedEntry.loadedRanges
+          cachedEntry.loadedRanges,
+          cachedEntry.totalCount
         );
 
         if (cachedData !== null) {
@@ -167,7 +168,8 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
           cachedEntry.records,
           offset,
           limit,
-          cachedEntry.loadedRanges
+          cachedEntry.loadedRanges,
+          cachedEntry.totalCount
         );
 
         if (cachedData !== null) {
