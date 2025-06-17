@@ -7,7 +7,7 @@ import {
   isRangeCovered,
   extractRangeFromCache,
   mergeRangeIntoCache,
-  generateInvalidationPattern
+  generateInvalidationPattern,
 } from '../cache/CacheUtils.js';
 
 export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataService<T, U> {
@@ -46,7 +46,7 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
     newData: T[],
     offset: number,
     totalCount?: number,
-    existingEntry?: CacheEntry<T> | null
+    existingEntry?: CacheEntry<T> | null,
   ): Promise<void> {
     try {
       if (existingEntry) {
@@ -55,7 +55,7 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
           existingEntry.records,
           existingEntry.loadedRanges,
           newData,
-          offset
+          offset,
         );
 
         const updatedEntry: CacheEntry<T> = {
@@ -90,7 +90,7 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
    */
   async getAll(params: QueryParams<T> = {}): Promise<DataResult<U>> {
     const cache = this.client.getCache();
-    
+
     if (cache) {
       const cacheKey = generateCacheKey(this.connection, this.entity, 'getAll', params);
       const offset = params.offset || 0;
@@ -104,7 +104,7 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
           offset,
           limit,
           cachedEntry.loadedRanges,
-          cachedEntry.totalCount
+          cachedEntry.totalCount,
         );
 
         if (cachedData !== null) {
@@ -128,7 +128,7 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
           response.data,
           offset,
           response.recordCount,
-          cachedEntry
+          cachedEntry,
         );
       }
 
@@ -155,7 +155,7 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
    */
   async query(params: QueryParams<T> = {}): Promise<DataResult<U>> {
     const cache = this.client.getCache();
-    
+
     if (cache) {
       const cacheKey = generateCacheKey(this.connection, this.entity, 'query', params);
       const offset = params.offset || 0;
@@ -169,7 +169,7 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
           offset,
           limit,
           cachedEntry.loadedRanges,
-          cachedEntry.totalCount
+          cachedEntry.totalCount,
         );
 
         if (cachedData !== null) {
@@ -193,7 +193,7 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
           response.data,
           offset,
           response.recordCount,
-          cachedEntry
+          cachedEntry,
         );
       }
 

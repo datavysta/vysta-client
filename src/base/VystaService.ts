@@ -62,10 +62,10 @@ export class VystaService<T, U = T>
    */
   async getById(id: PrimaryKeyType<T>): Promise<U> {
     const cache = this.client.getCache();
-    
+
     if (cache) {
       const cacheKey = generateCacheKey(this.connection, this.entity, 'getById', { id });
-      
+
       // Try to get from cache
       const cachedEntry = await cache.get<T>(cacheKey);
       if (cachedEntry && cachedEntry.records.length > 0) {
@@ -75,7 +75,7 @@ export class VystaService<T, U = T>
       // Cache miss - fetch from API
       const response = await this.client.get<T>(this.buildPath(''), this.createPkFilter(id));
       const row = Array.isArray(response.data) ? response.data[0] : response.data;
-      
+
       // Cache the result
       if (row) {
         const cacheEntryValue = {
@@ -86,7 +86,7 @@ export class VystaService<T, U = T>
         };
         await cache.set(cacheKey, cacheEntryValue);
       }
-      
+
       return this.hydrate(row);
     }
 
@@ -103,10 +103,10 @@ export class VystaService<T, U = T>
    */
   async create(data: T): Promise<U> {
     const response = await this.client.post<T>(this.buildPath(''), data);
-    
+
     // Invalidate cache after write operation
     await this.invalidateCache();
-    
+
     // Cast the response as T since we know in create context it should always return data
     return this.hydrate(response as T);
   }
@@ -119,10 +119,10 @@ export class VystaService<T, U = T>
    */
   async update(id: PrimaryKeyType<T>, data: Partial<T>): Promise<number> {
     const result = await this.client.patch(this.buildPath(''), data, this.createPkFilter(id));
-    
+
     // Invalidate cache after write operation
     await this.invalidateCache();
-    
+
     return result;
   }
 
@@ -134,10 +134,10 @@ export class VystaService<T, U = T>
    */
   async updateWhere(params: QueryParams<T>, data: Partial<T>): Promise<number> {
     const result = await this.client.patch(this.buildPath(''), data, params);
-    
+
     // Invalidate cache after write operation
     await this.invalidateCache();
-    
+
     return result;
   }
 
@@ -148,10 +148,10 @@ export class VystaService<T, U = T>
    */
   async delete(id: PrimaryKeyType<T>): Promise<number> {
     const result = await this.client.delete(this.buildPath(''), this.createPkFilter(id));
-    
+
     // Invalidate cache after write operation
     await this.invalidateCache();
-    
+
     return result;
   }
 
@@ -162,10 +162,10 @@ export class VystaService<T, U = T>
    */
   async deleteWhere(params: QueryParams<T>): Promise<number> {
     const result = await this.client.delete(this.buildPath(''), params);
-    
+
     // Invalidate cache after write operation
     await this.invalidateCache();
-    
+
     return result;
   }
 }

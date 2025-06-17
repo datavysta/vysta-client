@@ -62,7 +62,7 @@ class IndexedDBStorage implements CacheStorage {
     try {
       // Dynamic import of idb for browsers only (requires: npm install idb)
       const { openDB } = await import('idb');
-      
+
       this.dbPromise = openDB('vysta-cache', 1, {
         upgrade(db: any) {
           if (!db.objectStoreNames.contains('cache')) {
@@ -84,7 +84,7 @@ class IndexedDBStorage implements CacheStorage {
       if (!this.dbPromise) return null;
       const db = await this.dbPromise;
       const entry = await db.get('cache', key);
-      
+
       if (!entry) return null;
 
       // Check TTL
@@ -106,14 +106,14 @@ class IndexedDBStorage implements CacheStorage {
     try {
       if (!this.dbPromise) return;
       const db = await this.dbPromise;
-      
+
       // Apply TTL from config if not set on entry
       if (!value.ttl) {
         value.ttl = this.config.ttl;
       }
-      
+
       await db.put('cache', value, key);
-      
+
       // Check size limit and evict if necessary
       if (this.config.maxSize) {
         await this.evictIfNeeded();
@@ -150,7 +150,7 @@ class IndexedDBStorage implements CacheStorage {
       const tx = db.transaction('cache', 'readwrite');
       const store = tx.objectStore('cache');
       const keys = await store.getAllKeys();
-      
+
       for (const key of keys) {
         if (typeof key === 'string' && key.includes(pattern)) {
           await store.delete(key);
@@ -175,18 +175,18 @@ class IndexedDBStorage implements CacheStorage {
 
   private async evictIfNeeded(): Promise<void> {
     if (!this.config.maxSize || !this.dbPromise) return;
-    
+
     try {
       const db = await this.dbPromise;
       const tx = db.transaction('cache', 'readwrite');
       const store = tx.objectStore('cache');
       const entries = await store.getAll();
-      
+
       if (entries.length > this.config.maxSize) {
         // Sort by timestamp (LRU eviction)
         entries.sort((a: any, b: any) => a.timestamp - b.timestamp);
         const toDelete = entries.slice(0, entries.length - this.config.maxSize);
-        
+
         for (const entry of toDelete) {
           const key = await store.getKey(entry);
           if (key) await store.delete(key);
@@ -230,9 +230,9 @@ class MemoryStorage implements CacheStorage {
     if (!value.ttl) {
       value.ttl = this.config.ttl;
     }
-    
+
     this.cache.set(key, value);
-    
+
     // Check size limit and evict if necessary
     if (this.config.maxSize && this.cache.size > this.config.maxSize) {
       await this.evictOldest();
@@ -275,4 +275,4 @@ class MemoryStorage implements CacheStorage {
       this.cache.delete(oldestKey);
     }
   }
-} 
+}

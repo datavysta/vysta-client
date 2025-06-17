@@ -24,4 +24,4 @@ export interface CacheStorage {
   clear(): Promise<void>;
   deleteByPattern(pattern: string): Promise<void>;
   size(): Promise<number>;
-} 
+}

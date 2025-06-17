@@ -8,17 +8,17 @@ export function generateCacheKey(
   connection: string,
   entity: string,
   method: string,
-  params?: any
+  params?: any,
 ): string {
   const baseKey = `${connection}:${entity}:${method}`;
-  
+
   if (!params) {
     return baseKey;
   }
 
   // For range-aware caching, exclude offset and limit from key generation
   const { offset, limit, ...cacheableParams } = params;
-  
+
   if (Object.keys(cacheableParams).length === 0) {
     return baseKey;
   }
@@ -35,7 +35,7 @@ function hashObject(obj: any): string {
     // Sort keys for deterministic serialization
     const sorted = sortObjectKeys(obj);
     const serialized = JSON.stringify(sorted);
-    
+
     // Simple hash using btoa (base64 encoding)
     // For production, consider using a proper hash function
     return btoa(unescape(encodeURIComponent(serialized)))
@@ -76,7 +76,7 @@ export function isRangeCovered(
   requestedOffset: number,
   requestedLimit: number,
   loadedRanges: Range[],
-  totalCount?: number
+  totalCount?: number,
 ): boolean {
   const requestedStart = requestedOffset;
   let requestedEnd = requestedOffset + requestedLimit - 1;
@@ -107,7 +107,7 @@ export function extractRangeFromCache<T>(
   requestedOffset: number,
   requestedLimit: number,
   loadedRanges: Range[],
-  totalCount?: number
+  totalCount?: number,
 ): T[] | null {
   if (!isRangeCovered(requestedOffset, requestedLimit, loadedRanges, totalCount)) {
     return null;
@@ -122,7 +122,7 @@ export function extractRangeFromCache<T>(
 
   // Ensure we don't exceed the cached array length
   endIndex = Math.min(endIndex, cachedRecords.length);
-  
+
   const slice = cachedRecords.slice(startIndex, endIndex).filter(record => record !== null);
   return slice;
 }
@@ -134,7 +134,7 @@ export function mergeRangeIntoCache<T>(
   existingRecords: T[],
   existingRanges: Range[],
   newRecords: T[],
-  newOffset: number
+  newOffset: number,
 ): { records: T[]; ranges: Range[] } {
   // Clone existing data
   const records = [...existingRecords];
@@ -142,7 +142,7 @@ export function mergeRangeIntoCache<T>(
 
   // Insert new records at the correct position
   const newEnd = newOffset + newRecords.length - 1;
-  
+
   // Extend records array if needed
   while (records.length <= newEnd) {
     records.push(null as any);
@@ -160,7 +160,7 @@ export function mergeRangeIntoCache<T>(
   // Merge overlapping ranges
   ranges.sort((a, b) => a.start - b.start);
   const mergedRanges: Range[] = [];
-  
+
   for (const range of ranges) {
     if (mergedRanges.length === 0) {
       mergedRanges.push(range);
@@ -184,4 +184,4 @@ export function mergeRangeIntoCache<T>(
  */
 export function generateInvalidationPattern(connection: string, entity: string): string {
   return `${connection}:${entity}:`;
-} 
+}
