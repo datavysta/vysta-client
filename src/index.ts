@@ -36,6 +36,8 @@ import type {
 } from './VystaFileService.js';
 import { VystaAdminUserService, CreateUserData, User } from './VystaAdminUserService.js';
 import { GetResponse } from './VystaClient.js';
+import { CacheStorage, CacheEntry, CacheConfig, Range } from './cache/CacheStorage.js';
+import { DefaultCacheStorage } from './cache/DefaultCacheStorage.js';
 
 export {
   VystaClient,
@@ -88,4 +90,10 @@ export {
   CreateUserData,
   User,
   GetResponse,
+  // Cache system
+  CacheStorage,
+  CacheEntry,
+  CacheConfig,
+  Range,
+  DefaultCacheStorage,
 };
