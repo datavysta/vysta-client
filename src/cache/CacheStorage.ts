@@ -7,6 +7,7 @@ export interface CacheEntry<T> {
   records: T[];
   loadedRanges: Range[];
   totalCount?: number;
+  paramsJson?: string; // Raw JSON of parameters for debugging
   timestamp: number;
   ttl?: number;
 }

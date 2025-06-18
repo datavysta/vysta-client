@@ -189,3 +189,7 @@ export function mergeRangeIntoCache<T>(
 export function generateInvalidationPattern(connection: string, entity: string): string {
   return `${connection}:${entity}:`;
 }
+
+export function stableStringify(obj: any): string {
+  return JSON.stringify(sortObjectKeys(obj));
+}
