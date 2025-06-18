@@ -63,6 +63,12 @@ export class VystaAuth {
   private expiration: number | null = null;
   private host: string | null = null;
   private principal: Principal | null = null;
+  /**
+   * Host value explicitly provided by the SDK consumer. Only this value will
+   * be forwarded with requests. Any host information returned by the backend
+   * during authentication is stored but not automatically sent.
+   */
+  private manualHost: string | null = null;
 
   constructor(
     private readonly baseUrl: string,
@@ -92,9 +98,7 @@ export class VystaAuth {
     try {
       const response = await fetch(`${this.baseUrl}/api/auth/gettoken`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.buildHeaders(),
         body: JSON.stringify({ username, password }),
       });
 
@@ -142,6 +146,7 @@ export class VystaAuth {
         authorization: `Bearer ${token}`,
         'content-type': 'application/json',
         accept: acceptType, // Dynamically set Accept header
+        ...(this.manualHost ? { 'X-DataVysta-Host': this.manualHost } : {}),
       };
     } catch (error) {
       this.errorHandler.onError(error instanceof Error ? error : new Error(String(error)));
@@ -184,9 +189,7 @@ export class VystaAuth {
     try {
       const response = await fetch(`${this.baseUrl}/api/auth/getrefreshtoken`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.buildHeaders(),
         body: JSON.stringify({
           accessToken: this.accessToken,
           refreshToken: this.refreshToken,
@@ -224,7 +227,9 @@ export class VystaAuth {
   }
 
   async getSignInMethods(): Promise<SignInInfo[]> {
-    const response = await fetch(`${this.baseUrl}/api/auth/signininfos`);
+    const response = await fetch(`${this.baseUrl}/api/auth/signininfos`, {
+      headers: this.buildHeaders(null, 'application/json'),
+    });
     if (!response.ok) {
       throw new Error(`Failed to fetch sign-in methods: ${response.statusText}`);
     }
@@ -234,10 +239,7 @@ export class VystaAuth {
   async getAuthorizeUrl(signInId: string): Promise<string> {
     const response = await fetch(`${this.baseUrl}/api/auth/getauthorizeurl/${signInId}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'text/plain',
-        Accept: 'text/plain',
-      },
+      headers: this.buildHeaders('text/plain', 'text/plain'),
     });
     if (!response.ok) {
       throw new Error(`Failed to get authorize URL: ${response.statusText}`);
@@ -249,9 +251,7 @@ export class VystaAuth {
     try {
       const response = await fetch(`${this.baseUrl}/api/auth/gettoken`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.buildHeaders(),
         body: JSON.stringify({ token }),
       });
 
@@ -313,9 +313,7 @@ export class VystaAuth {
     try {
       const response = await fetch(`${this.baseUrl}/api/auth/signup`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.buildHeaders(),
         body: JSON.stringify({ email, redirectUrl }),
       });
       if (!response.ok) {
@@ -327,5 +325,29 @@ export class VystaAuth {
       this.errorHandler.onError(error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
+  }
+
+  /**
+   * Sets or clears the host value used for the X-DataVysta-Host header.
+   * This can be provided by the developer to force a specific host to be sent
+   * with every request or cleared by passing null.
+   */
+  setHost(host: string | null): void {
+    this.manualHost = host;
+  }
+
+  /**
+   * Builds a basic headers object for unauthenticated requests, automatically
+   * injecting the X-DataVysta-Host header when a manual host is provided.
+   */
+  private buildHeaders(
+    contentType: string | null = 'application/json',
+    accept: string | null = 'application/json',
+  ): Record<string, string> {
+    const headers: Record<string, string> = {};
+    if (contentType) headers['Content-Type'] = contentType;
+    if (accept) headers['Accept'] = accept;
+    if (this.manualHost) headers['X-DataVysta-Host'] = this.manualHost;
+    return headers;
   }
 }

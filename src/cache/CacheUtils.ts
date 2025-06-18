@@ -40,8 +40,7 @@ function hashObject(obj: any): string {
 
     // Simple hash using btoa (base64 encoding)
     // For production, consider using a proper hash function
-    return btoa(unescape(encodeURIComponent(serialized)))
-      .replace(/[+/=]/g, ''); // Remove URL-unsafe characters
+    return btoa(unescape(encodeURIComponent(serialized))).replace(/[+/=]/g, ''); // Remove URL-unsafe characters
   } catch (error) {
     console.warn('[VystaCache] Failed to hash object, using timestamp:', error);
     return Date.now().toString();

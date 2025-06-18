@@ -25,6 +25,24 @@ const client = new VystaClient({
 await client.login('username', 'password');
 ```
 
+**Multi-tenant / custom host header**
+
+If your Vysta deployment differentiates tenants by the incoming host name you can forward that value with every request (including authentication) via the optional `host` setting:
+
+```typescript
+const client = new VystaClient({
+  baseUrl: 'https://api.datavysta.com',
+  host: 'my-tenant.example.com'   // sent as X-DataVysta-Host on every call
+});
+
+// You can also change it later:
+client.setHost('other-tenant.example.com');
+```
+
+The library automatically adds an `X-DataVysta-Host` header to all requests whenever `host` is set.
+
+If your frontend is already served from the tenant-specific domain (e.g. `https://my-tenant.example.com`) you don't need to set `host` at all—the backend will automatically use the request's `Origin`/`Host` header to resolve the tenant.
+
 ### Token Storage
 
 By default, tokens are stored in sessionStorage. You can customize this behavior:

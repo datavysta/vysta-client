@@ -15,6 +15,11 @@ export interface VystaConfig {
   errorHandler?: AuthErrorHandler;
   debug?: boolean;
   cache?: CacheStorage | CacheConfig | boolean;
+  /**
+   * Optional host value to forward with every request via the \`X-DataVysta-Host\` header.
+   * Useful for multi-tenant scenarios where the backend needs to know the originating host.
+   */
+  host?: string;
 }
 
 export class VystaClient {
@@ -25,6 +30,10 @@ export class VystaClient {
   constructor(private config: VystaConfig) {
     this.debug = config.debug || false;
     this.auth = new VystaAuth(this.config.baseUrl, config.storage, config.errorHandler);
+    // Configure custom host header if provided
+    if (config.host) {
+      this.auth.setHost(config.host);
+    }
     this.initializeCache();
   }
 
@@ -477,5 +486,14 @@ export class VystaClient {
       console.error('[VystaClient]', error);
     }
     throw new Error(error);
+  }
+
+  /**
+   * Updates the host value that will be forwarded with every request via
+   * the \`X-DataVysta-Host\` header.
+   * @param host - The host value to send, or null to clear it
+   */
+  setHost(host: string | null): void {
+    this.auth.setHost(host);
   }
 }

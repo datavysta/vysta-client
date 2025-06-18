@@ -44,9 +44,7 @@ export interface TusUploadOptions {
 
 export interface TusXhrOptions {
   endpoint: string;
-  headers: {
-    Authorization: string;
-  };
+  headers: Record<string, string>;
 }
 
 /**
@@ -256,11 +254,18 @@ export class VystaFileService {
     const endpoint = await this.getTusEndpoint();
     const headers = await this.client['auth'].getAuthHeaders();
 
+    const tusHeaders: Record<string, string> = {
+      Authorization: (headers as Record<string, string>)['authorization'],
+    };
+
+    // Forward custom host header when present
+    if ((headers as Record<string, string>)['X-DataVysta-Host']) {
+      tusHeaders['X-DataVysta-Host'] = (headers as Record<string, string>)['X-DataVysta-Host'];
+    }
+
     return {
       endpoint,
-      headers: {
-        Authorization: (headers as Record<string, string>)['authorization'],
-      },
+      headers: tusHeaders,
     };
   }
 }
