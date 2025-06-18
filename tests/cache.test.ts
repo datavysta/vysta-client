@@ -134,4 +134,20 @@ describe('Vysta cache layer', () => {
     await service.query({ conditions: baseCond('Q%') });
     expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
+
+  test('zero-row result caches correctly', async () => {
+    // mock fetch to return empty data for next call
+    fetchSpy.mockImplementationOnce(() => {
+      return Promise.resolve({
+        ok: true,
+        json: async () => [],
+        headers: { get: () => '0' },
+      });
+    });
+    await service.getAll({ limit: 10 }); // MISS fetches 0 rows
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    await service.getAll({ limit: 10 }); // should HIT cache even though empty
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
 }); 

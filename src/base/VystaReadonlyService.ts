@@ -94,7 +94,20 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
     recordCount: number | undefined,
     existingEntry: CacheEntry<T> | null,
   ): Promise<void> {
-    const inferredCount = recordCount ?? (data.length < limit ? offset + data.length : undefined);
+    const inferredCount =
+      recordCount ?? (data.length < limit ? offset + data.length : undefined);
+
+    // If no rows returned, store empty entry with totalCount so future calls HIT
+    if (data.length === 0) {
+      const emptyEntry: CacheEntry<T> = {
+        records: [],
+        loadedRanges: [],
+        totalCount: inferredCount ?? 0,
+        timestamp: Date.now(),
+      };
+      await cache.set(cacheKey, emptyEntry);
+      return;
+    }
 
     await this.updateCache(cache, cacheKey, data, offset, inferredCount, existingEntry);
   }

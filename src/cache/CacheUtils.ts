@@ -78,6 +78,10 @@ export function isRangeCovered(
   loadedRanges: Range[],
   totalCount?: number,
 ): boolean {
+  if (typeof totalCount === 'number' && totalCount === 0) {
+    return true; // empty dataset covered
+  }
+
   const requestedStart = requestedOffset;
   let requestedEnd = requestedOffset + requestedLimit - 1;
 
