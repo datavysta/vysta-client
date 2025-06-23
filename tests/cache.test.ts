@@ -51,7 +51,7 @@ describe('Vysta cache layer', () => {
     // @ts-ignore
     global.fetch = fetchSpy;
 
-    client = new VystaClient({ baseUrl: 'http://localhost', cache: true, debug: false });
+    client = new VystaClient({ baseUrl: 'http://localhost', debug: false });
     // @ts-ignore  bypass auth headers
     client.auth.getAuthHeaders = async () => ({});
 
@@ -63,75 +63,75 @@ describe('Vysta cache layer', () => {
   });
 
   test('single call cached on second hit', async () => {
-    await service.getAll({ limit: 20, offset: 0 });
+    await service.getAll({ limit: 20, offset: 0, useCache: true });
     expect(fetchSpy).toHaveBeenCalledTimes(1);
 
-    await service.getAll({ limit: 20, offset: 0 });
+    await service.getAll({ limit: 20, offset: 0, useCache: true });
     expect(fetchSpy).toHaveBeenCalledTimes(1); // no additional fetch
   });
 
   test('range merge caching', async () => {
-    await service.getAll({ limit: 20, offset: 0 });
-    await service.getAll({ limit: 20, offset: 20 });
+    await service.getAll({ limit: 20, offset: 0, useCache: true });
+    await service.getAll({ limit: 20, offset: 20, useCache: true });
     expect(fetchSpy).toHaveBeenCalledTimes(2);
 
-    await service.getAll({ limit: 40, offset: 0 });
+    await service.getAll({ limit: 40, offset: 0, useCache: true });
     expect(fetchSpy).toHaveBeenCalledTimes(2); // hit from merged range
   });
 
   test('different select produces new cache key', async () => {
-    await service.getAll({ select: ['id'], limit: 10 });
-    await service.getAll({ select: ['id'], limit: 10 });
+    await service.getAll({ select: ['id'], limit: 10, useCache: true });
+    await service.getAll({ select: ['id'], limit: 10, useCache: true });
     expect(fetchSpy).toHaveBeenCalledTimes(1);
 
-    await service.getAll({ select: { id: 'alias' }, limit: 10 });
+    await service.getAll({ select: { id: 'alias' }, limit: 10, useCache: true });
     expect(fetchSpy).toHaveBeenCalledTimes(2); // new key triggers fetch
   });
 
   test('refreshCache invalidates', async () => {
-    await service.getAll({ limit: 10 });
-    await service.getAll({ limit: 10 });
+    await service.getAll({ limit: 10, useCache: true });
+    await service.getAll({ limit: 10, useCache: true });
     expect(fetchSpy).toHaveBeenCalledTimes(1);
 
     await service.refreshCache();
-    await service.getAll({ limit: 10 });
+    await service.getAll({ limit: 10, useCache: true });
     expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 
   test('aggregate query caches single-row result', async () => {
-    await service.query({ select: [{ name: 'id', aggregate: 'AVG', alias: 'avgId' }] as any });
+    await service.query({ select: [{ name: 'id', aggregate: 'AVG', alias: 'avgId' }] as any, useCache: true });
     expect(fetchSpy).toHaveBeenCalledTimes(1);
 
-    await service.query({ select: [{ name: 'id', aggregate: 'AVG', alias: 'avgId' }] as any });
+    await service.query({ select: [{ name: 'id', aggregate: 'AVG', alias: 'avgId' }] as any, useCache: true });
     expect(fetchSpy).toHaveBeenCalledTimes(1); // cached hit, no extra fetch
   });
 
   test('order direction creates new cache entry', async () => {
-    await service.getAll({ order: { id: 'asc' }, limit: 5 });
-    await service.getAll({ order: { id: 'asc' }, limit: 5 });
+    await service.getAll({ order: { id: 'asc' }, limit: 5, useCache: true });
+    await service.getAll({ order: { id: 'asc' }, limit: 5, useCache: true });
     expect(fetchSpy).toHaveBeenCalledTimes(1);
 
-    await service.getAll({ order: { id: 'desc' }, limit: 5 });
+    await service.getAll({ order: { id: 'desc' }, limit: 5, useCache: true });
     expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 
   test('inputProperties changes create new cache entry', async () => {
-    await service.query({ inputProperties: { foo: 'a' } });
-    await service.query({ inputProperties: { foo: 'a' } });
+    await service.query({ inputProperties: { foo: 'a' }, useCache: true });
+    await service.query({ inputProperties: { foo: 'a' }, useCache: true });
     expect(fetchSpy).toHaveBeenCalledTimes(1);
 
-    await service.query({ inputProperties: { foo: 'b' } });
+    await service.query({ inputProperties: { foo: 'b' }, useCache: true });
     expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 
   test('conditions value change creates new cache entry', async () => {
     const baseCond = (val: string) => [{ column: 'name', comparisonOperator: 'Like', values: [val] } as any];
 
-    await service.query({ conditions: baseCond('Bon%') });
-    await service.query({ conditions: baseCond('Bon%') });
+    await service.query({ conditions: baseCond('Bon%'), useCache: true });
+    await service.query({ conditions: baseCond('Bon%'), useCache: true });
     expect(fetchSpy).toHaveBeenCalledTimes(1);
 
-    await service.query({ conditions: baseCond('Q%') });
+    await service.query({ conditions: baseCond('Q%'), useCache: true });
     expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 
@@ -144,10 +144,32 @@ describe('Vysta cache layer', () => {
         headers: { get: () => '0' },
       });
     });
-    await service.getAll({ limit: 10 }); // MISS fetches 0 rows
+    await service.getAll({ limit: 10, useCache: true }); // MISS fetches 0 rows
     expect(fetchSpy).toHaveBeenCalledTimes(1);
 
-    await service.getAll({ limit: 10 }); // should HIT cache even though empty
+    await service.getAll({ limit: 10, useCache: true }); // should HIT cache even though empty
     expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  test('cache can be disabled per request', async () => {
+    // First call should not cache (cache is opt-in)
+    await service.getAll({ limit: 10 });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    // Second call without cache should fetch again
+    await service.getAll({ limit: 10 });
+    expect(fetchSpy).toHaveBeenCalledTimes(2); // fetches again
+
+    // Third call with cache enabled should cache
+    await service.getAll({ limit: 10, useCache: true });
+    expect(fetchSpy).toHaveBeenCalledTimes(3); // fetches again
+
+    // Fourth call with cache enabled should hit cache
+    await service.getAll({ limit: 10, useCache: true });
+    expect(fetchSpy).toHaveBeenCalledTimes(3); // uses cache from third call
+
+    // Fifth call with cache disabled should fetch again
+    await service.getAll({ limit: 10, useCache: false });
+    expect(fetchSpy).toHaveBeenCalledTimes(4); // fetches again
   });
 }); 

@@ -79,20 +79,19 @@ const client = new VystaClient({
 });
 ```
 
-### Caching (Optional)
+### Caching
 
 The Vysta client ships with a lightweight, **range-aware cache** (similar in spirit to React-Query) that can dramatically cut round-trips when you scroll, paginate or repeatedly query the same data.
 
 • Default storage is **IndexedDB** in the browser (via the [`idb`](https://github.com/jakearchibald/idb) helper) and an in-memory `Map` in Node.js.  
-• Caching is **disabled by default** – enable it per client or swap in your own `CacheStorage` implementation.
+• Caching is **opt-in at the GET query level** – you can configure it per client or swap in your own `CacheStorage` implementation.
 
 ```typescript
 import { VystaClient, DefaultCacheStorage } from '@datavysta/vysta-client';
 
-// 1) Turn caching on with defaults (TTL = 5 min, maxSize = 1000 entries)
+// 1) Use default cache with default config (TTL = 5 min, maxSize = 1000 entries)
 const client = new VystaClient({
-  baseUrl: 'https://api.datavysta.com',
-  cache: true
+  baseUrl: 'https://api.datavysta.com'
 });
 
 // 2) Fine-tune TTL / size
@@ -110,6 +109,23 @@ const client = new VystaClient({
   baseUrl: '…',
   cache: new RedisCache()
 });
+```
+
+#### Per-request cache control
+```typescript
+// Enable cache for specific requests (cache is opt-in)
+await service.getAll({ limit: 10, useCache: true });
+await service.query({ conditions: [...], useCache: true });
+await service.getById(123, true); // second parameter enables cache
+
+// Disable cache for specific requests
+await service.getAll({ limit: 10, useCache: false });
+await service.query({ conditions: [...], useCache: false });
+await service.getById(123, false); // second parameter disables cache
+
+// Default behavior (no cache specified)
+await service.getAll({ limit: 10 }); // no cache used
+await service.getById(123); // no cache used
 ```
 
 #### Manual cache control

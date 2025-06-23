@@ -75,6 +75,7 @@ export type QueryParams<T> = {
   };
   conditions?: any;
   q?: string;
+  useCache?: boolean;
 };
 
 export interface VystaResponse<T> {

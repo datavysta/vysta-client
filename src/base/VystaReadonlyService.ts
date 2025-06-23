@@ -125,7 +125,8 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
   async getAll(params: QueryParams<T> = {}): Promise<DataResult<U>> {
     const cache = this.client.getCache();
 
-    if (cache) {
+    // Only use cache if explicitly enabled for this request
+    if (cache && params.useCache === true) {
       const cacheKey = generateCacheKey(this.connection, this.entity, 'getAll', params);
       const offset = params.offset || 0;
       const limit = params.limit || 50;
@@ -196,7 +197,8 @@ export abstract class VystaReadonlyService<T, U = T> implements IReadonlyDataSer
   async query(params: QueryParams<T> = {}): Promise<DataResult<U>> {
     const cache = this.client.getCache();
 
-    if (cache) {
+    // Only use cache if explicitly enabled for this request
+    if (cache && params.useCache === true) {
       const cacheKey = generateCacheKey(this.connection, this.entity, 'query', params);
       const offset = params.offset || 0;
       const limit = params.limit || 50;

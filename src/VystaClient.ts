@@ -14,7 +14,7 @@ export interface VystaConfig {
   storage?: TokenStorage;
   errorHandler?: AuthErrorHandler;
   debug?: boolean;
-  cache?: CacheStorage | CacheConfig | boolean;
+  cache?: CacheStorage | CacheConfig;
   /**
    * Optional host value to forward with every request via the \`X-DataVysta-Host\` header.
    * Useful for multi-tenant scenarios where the backend needs to know the originating host.
@@ -25,7 +25,7 @@ export interface VystaConfig {
 export class VystaClient {
   private auth: VystaAuth;
   private debug: boolean;
-  private cache: CacheStorage | null = null;
+  private cache: CacheStorage = new DefaultCacheStorage();
 
   constructor(private config: VystaConfig) {
     this.debug = config.debug || false;
@@ -39,10 +39,6 @@ export class VystaClient {
 
   private initializeCache(): void {
     if (!this.config.cache) {
-      return; // Caching disabled
-    }
-
-    if (typeof this.config.cache === 'boolean' && this.config.cache) {
       // Use default cache with default config
       this.cache = new DefaultCacheStorage();
     } else if (typeof this.config.cache === 'object' && 'get' in this.config.cache) {
@@ -456,7 +452,7 @@ export class VystaClient {
   /**
    * Gets the cache instance if caching is enabled
    */
-  getCache(): CacheStorage | null {
+  getCache(): CacheStorage {
     return this.cache;
   }
 

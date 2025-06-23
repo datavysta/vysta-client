@@ -58,12 +58,13 @@ export class VystaService<T, U = T>
   /**
    * Retrieves a single record by its primary key
    * @param id - The primary key value. For multi-part keys, pass an object with key-value pairs
+   * @param useCache - Whether to use cache for this request (defaults to false)
    * @returns A promise that resolves to a single record
    */
-  async getById(id: PrimaryKeyType<T>): Promise<U> {
+  async getById(id: PrimaryKeyType<T>, useCache: boolean = false): Promise<U> {
     const cache = this.client.getCache();
 
-    if (cache) {
+    if (cache && useCache) {
       const cacheKey = generateCacheKey(this.connection, this.entity, 'getById', { id });
 
       // Try to get from cache
