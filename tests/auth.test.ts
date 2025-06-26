@@ -7,17 +7,26 @@ import { Product } from '../examples/querying/types';
 
 class TestStorage implements TokenStorage {
   private storage: Record<string, string> = {};
+  private prefix: string;
+
+  constructor(testId?: string) {
+    this.prefix = testId ? `test_${testId}_` : `test_${Date.now()}_${Math.random()}_`;
+  }
 
   setToken(key: TokenKey, token: string): void {
-    this.storage[key] = token;
+    this.storage[this.prefix + key] = token;
   }
 
   getToken(key: TokenKey): string | null {
-    return this.storage[key] || null;
+    return this.storage[this.prefix + key] || null;
   }
 
   clearTokens(): void {
-    this.storage = {};
+    Object.keys(this.storage).forEach(key => {
+      if (key.startsWith(this.prefix)) {
+        delete this.storage[key];
+      }
+    });
   }
 }
 
@@ -33,7 +42,7 @@ const loginClient = async (client: VystaClient) => {
 };
 
 describe('Authentication', () => {
-  it.concurrent('should successfully login and store token', async () => {
+  it('should successfully login and store token', async () => {
     const client = createClient();
     const authResult = await loginClient(client);
     expect(authResult.accessToken).toBeDefined();
@@ -43,14 +52,14 @@ describe('Authentication', () => {
     expect(headers['authorization']).toMatch(/^Bearer /);
   });
 
-  it.concurrent('should fail with invalid credentials', async () => {
+  it('should fail with invalid credentials', async () => {
     const client = createClient();
     await expect(client.login('invalid@example.com', 'wrongpassword')).rejects.toThrow(
       'Login failed',
     );
   });
 
-  it.concurrent('should clear auth on logout', async () => {
+  it('should clear auth on logout', async () => {
     const client = createClient();
     await loginClient(client);
     await client.logout();
@@ -61,29 +70,29 @@ describe('Authentication', () => {
     const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
     describe('Long Running Tests', () => {
-      it.concurrent.skip(
+      it(
         'should handle expired refresh token',
         async () => {
           const client = createClient();
           await loginClient(client);
-          await wait(46000);
+          await wait(12000);
           await expect(client.get('Northwinds/Products', { limit: 1 })).rejects.toThrow(
             'Authentication refresh failed',
           );
           expect(client['auth'].isAuthenticated()).toBe(false);
           expect(client['auth'].getTokenExpiration()).toBeNull();
         },
-        50000,
+        20000,
       );
     });
 
     describe('Quick Refresh Tests', () => {
-      it.concurrent.skip(
+      it(
         'should handle concurrent requests during refresh',
         async () => {
           const client = createClient();
           await loginClient(client);
-          await wait(9000);
+          await wait(8000);
 
           const responses = await Promise.all([
             client.get<Product>('Northwinds/Products', { limit: 1 }),
@@ -99,7 +108,7 @@ describe('Authentication', () => {
         15000,
       );
 
-      it.concurrent.skip(
+      it(
         'should handle refresh at boundary',
         async () => {
           const client = createClient();
@@ -108,7 +117,7 @@ describe('Authentication', () => {
           const initialHeaders = (await client['auth'].getAuthHeaders()) as Record<string, string>;
           const initialToken = initialHeaders['authorization'];
 
-          await wait(9000);
+          await wait(8000);
 
           const beforeRequest = Math.floor(Date.now() / 1000);
           const response = await client.get('Northwinds/Products', { limit: 1 });

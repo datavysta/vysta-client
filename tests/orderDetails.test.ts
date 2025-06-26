@@ -21,12 +21,12 @@ describe('OrderDetails CRUD Operations', () => {
   });
 
   afterAll(async () => {
-    // Cleanup all test records
-    for (const id of TEST_RECORDS) {
-      try {
-        await orderDetails.delete(id);
-      } catch {
-        // Ignore if record doesn't exist
+    if (orderDetails) {
+      for (const id of TEST_RECORDS) {
+        try {
+          await orderDetails.delete(id);
+        } catch {
+        }
       }
     }
   });
@@ -92,48 +92,43 @@ describe('OrderDetails CRUD Operations', () => {
 
   describe('Update', () => {
     it('should update an order detail using composite key', async () => {
-      // First delete if exists
-      try {
-        await orderDetails.delete({
-          orderId: TEST_RECORDS[0].orderId,
-          productId: TEST_RECORDS[0].productId,
-        });
-      } catch {
-        // Ignore delete errors
-      }
-
-      // Create a test record
-      const testRecord = {
+      const testKey = {
         orderId: TEST_RECORDS[0].orderId,
         productId: TEST_RECORDS[0].productId,
+      };
+
+      try {
+        await orderDetails.delete(testKey);
+      } catch {
+      }
+
+      const testRecord = {
+        ...testKey,
         unitPrice: 10.99,
         quantity: 5,
         discount: 0,
       };
-      await orderDetails.create(testRecord);
+      
+      try {
+        await orderDetails.create(testRecord);
 
-      // Update the record
-      const updates = {
-        unitPrice: 15.99,
-        quantity: 3,
-      };
+        const updates = {
+          unitPrice: 15.99,
+          quantity: 3,
+        };
 
-      const affected = await orderDetails.update(
-        {
-          orderId: TEST_RECORDS[0].orderId,
-          productId: TEST_RECORDS[0].productId,
-        },
-        updates,
-      );
-      expect(affected).toBe(1);
+        const affected = await orderDetails.update(testKey, updates);
+        expect(affected).toBe(1);
 
-      // Verify the update
-      const updated = await orderDetails.getById({
-        orderId: TEST_RECORDS[0].orderId,
-        productId: TEST_RECORDS[0].productId,
-      });
-      expect(updated.unitPrice).toBe(updates.unitPrice);
-      expect(updated.quantity).toBe(updates.quantity);
+        const updated = await orderDetails.getById(testKey);
+        expect(updated.unitPrice).toBe(updates.unitPrice);
+        expect(updated.quantity).toBe(updates.quantity);
+      } finally {
+        try {
+          await orderDetails.delete(testKey);
+        } catch {
+        }
+      }
     });
 
     it('should update multiple order details', async () => {

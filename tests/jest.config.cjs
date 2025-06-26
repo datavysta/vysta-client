@@ -22,5 +22,8 @@ module.exports = {
   },
   transformIgnorePatterns: [
     '/node_modules/(?!(@uppy|preact)/)'
-  ]
-}; 
+  ],
+  testTimeout: 30000,
+  maxConcurrency: 1,
+  maxWorkers: 1
+};   

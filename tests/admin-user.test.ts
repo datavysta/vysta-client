@@ -385,6 +385,7 @@ describe('VystaAdminUserService - User Management', () => {
       const nonExistentId = 'non-existent-id';
       const updateData = {
         name: 'Updated Name',
+        roleIds: availableRoles.slice(0, 1).map(r => r.id),
       };
 
       await expect(userService.updateUser(nonExistentId, updateData)).rejects.toThrow();
