@@ -45,7 +45,7 @@ If your frontend is already served from the tenant-specific domain (e.g. `https:
 
 ### Token Storage
 
-By default, tokens are stored in sessionStorage. You can customize this behavior:
+By default, tokens are stored in localStorage. You can customize this behavior:
 
 ```typescript
 import { TokenStorage, TokenKey } from '@datavysta/vysta-client';
