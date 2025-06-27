@@ -28,15 +28,18 @@ export interface AuthErrorHandler {
 
 class DefaultStorage implements TokenStorage {
   setToken(key: TokenKey, value: string): void {
-    sessionStorage.setItem(key, value);
+    localStorage.setItem(key, value);
   }
 
   getToken(key: TokenKey): string | null {
-    return sessionStorage.getItem(key);
+    return localStorage.getItem(key);
   }
 
   clearTokens(): void {
-    sessionStorage.clear();
+    // Only clear auth-related keys, not all of localStorage
+    Object.values(TokenKey).forEach(key => {
+      localStorage.removeItem(key);
+    });
   }
 }
 
