@@ -35,8 +35,8 @@ describe('VystaTimezoneService (integration)', () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     // Ensure no residual tokens from previous tests
-    if (typeof sessionStorage !== 'undefined') {
-      sessionStorage.clear();
+    if (typeof localStorage !== 'undefined') {
+      localStorage.clear();
     }
 
     const unauthenticatedClient = createTestClient();
