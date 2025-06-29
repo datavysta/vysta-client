@@ -102,6 +102,9 @@ describe('VystaAdminUserService - User Management', () => {
       expect(createdUser.email).toBe(uniqueEmail);
       createdUserId = createdUser.id;
 
+      // Wait a few seconds for the user to be fully propagated in the system
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
       // Verify user was created
       const users = await userService.listUsers();
       const foundUser = users.find(u => u.id === createdUserId);
