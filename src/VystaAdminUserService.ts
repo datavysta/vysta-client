@@ -26,6 +26,7 @@ export type CreateUserData = Pick<User, 'name' | 'email'> &
   Partial<Pick<User, 'phoneNumber' | 'disabled' | 'forceChange' | 'properties' | 'password'>> & {
     // For creating users, we use arrays of role IDs
     roleIds: string[];
+    redirectUrl?: string;
   };
 
 export class VystaAdminUserService extends VystaAdminService<User> {

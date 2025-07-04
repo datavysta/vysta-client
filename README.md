@@ -538,6 +538,16 @@ const newUser = await userService.createUser({
   forceChange: true
 });
 
+// Create a user with custom redirect URL for invitation emails
+const newUserWithRedirect = await userService.createUser({
+  name: 'Jane Doe',
+  email: 'jane.doe@example.com',
+  roleIds: [userRoleId],
+  disabled: false,
+  forceChange: true,
+  redirectUrl: '/custom/onboarding' // Custom path for invitation acceptance
+});
+
 // Update a user
 await userService.updateUser(userId, {
   name: 'Jane Doe',
@@ -586,6 +596,7 @@ interface CreateUserData {
   forceChange?: boolean;
   properties?: string;
   password?: string;
+  redirectUrl?: string; // Optional custom redirect URL for invitation emails
 }
 ```
 
