@@ -4,12 +4,23 @@ This directory contains example applications demonstrating how to use the Vysta 
 
 ## Examples
 
-### Authentication Example
+### Authentication Examples
+Examples demonstrating password and OAuth authentication flows.
+
+#### Authentication Demo - Password login and OAuth providers
 A sample application demonstrating:
 - Password-based authentication
 - OAuth provider integration
 - Token handling and storage
 - Redirect handling for OAuth flows
+
+#### Environment Switching Demo - Multi-environment authentication
+A sample application demonstrating:
+- Environment switching workflow
+- Available environments discovery
+- Token exchange between environments
+- Host switching and authentication state management
+- Debug information for troubleshooting
 
 ### Querying Example
 A sample application demonstrating:
@@ -64,6 +75,7 @@ npm run dev
 - Grid Example: http://localhost:5173/querying/grid.html
 - CRUD Example: http://localhost:5173/crud/products.html
 - Auth Example: http://localhost:5173/auth/auth.html
+- Environment Switching Example: http://localhost:5173/auth/environment-switching.html
 - Workflow Example: http://localhost:5173/workflows/workflow.html
 
 ### Example Files
@@ -73,6 +85,13 @@ npm run dev
   - Implements server-side sorting and filtering
   - Demonstrates efficient data loading with pagination
 - `crud/products.html` - Product management with CRUD operations
+- `auth/auth.html` - Authentication example with password and OAuth providers
+- `auth/environment-switching.html` - Environment switching example
+  - Demonstrates multi-environment authentication workflow
+  - Shows available environments discovery and selection
+  - Handles token exchange between environments
+  - Updates client host configuration dynamically
+  - Provides debug information for troubleshooting
 - `workflows/workflow.html` - Workflow execution example
   - Demonstrates workflow service usage
   - Shows input/output type handling

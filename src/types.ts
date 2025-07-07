@@ -5,7 +5,7 @@ export interface Principal {
   identityId: string;
   tenantId: string;
   envId: string;
-  roleId: string;
+  roles: string[]; // Array of role IDs
 }
 
 export interface AuthResult {
@@ -14,6 +14,22 @@ export interface AuthResult {
   host: string;
   expiration: number;
   principal: Principal;
+}
+
+// Environment switching related interfaces
+export interface EnvironmentAvailable {
+  environmentId: string;
+  environmentName: string;
+  host: string;
+  tenantId: string;
+  tenantName: string;
+}
+
+export interface CreateEnvironmentResponse {
+  authExchangeToken: string;
+  tenantId: string;
+  envId: string;
+  host: string;
 }
 
 export interface DataResult<T> {

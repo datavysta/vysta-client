@@ -1,6 +1,6 @@
 import { jwtDecode } from 'jwt-decode';
 
-import { AuthResult, Principal, UserProfile } from './types.js';
+import { AuthResult, Principal, UserProfile, EnvironmentAvailable } from './types.js';
 
 export enum TokenKey {
   AccessToken = 'accessToken',
@@ -14,6 +14,9 @@ const AUTH_ERRORS = {
   REFRESH_FAILED: 'Authentication refresh failed',
   NO_TOKENS: 'No tokens available for refresh',
   NOT_AUTHENTICATED: 'Not authenticated',
+  ENVIRONMENT_ACCESS_DENIED: 'Access denied to target environment',
+  ENVIRONMENT_SWITCH_FAILED: 'Environment switch failed',
+  INVALID_EXCHANGE_TOKEN: 'Invalid or expired exchange token',
 } as const;
 
 export interface TokenStorage {
@@ -341,6 +344,99 @@ export class VystaAuth {
    */
   setHost(host: string | null): void {
     this.manualHost = host;
+  }
+
+  /**
+   * Gets the list of available environments for the current user.
+   * @returns Array of available environments grouped by tenant
+   */
+  async getAvailableEnvironments(): Promise<EnvironmentAvailable[]> {
+    try {
+      const headers = await this.getAuthHeaders();
+      const response = await fetch(`${this.baseUrl}/api/restadmin/security/environment/available`, {
+        headers,
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error(AUTH_ERRORS.NOT_AUTHENTICATED);
+        }
+        throw new Error(`Failed to get available environments: ${response.statusText}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      this.errorHandler.onError(error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
+  }
+
+  /**
+   * Initiates a switch to a different environment.
+   * @param tenantId - The tenant ID of the target environment
+   * @param environmentId - The environment ID to switch to
+   * @returns Exchange token for completing the environment switch
+   */
+  async switchEnvironment(tenantId: string, environmentId: string): Promise<string> {
+    try {
+      const headers = await this.getAuthHeaders();
+      const response = await fetch(`${this.baseUrl}/api/auth/switchEnvironment`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          tenantId,
+          environmentId,
+          accessToken: this.accessToken,
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error(AUTH_ERRORS.ENVIRONMENT_ACCESS_DENIED);
+        }
+        throw new Error(`${AUTH_ERRORS.ENVIRONMENT_SWITCH_FAILED}: ${response.statusText}`);
+      }
+
+      return response.json(); // Returns the exchange token as a JSON string
+    } catch (error) {
+      this.errorHandler.onError(error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
+  }
+
+  /**
+   * Constructs the authentication redirect URL for environment switching.
+   * @param exchangeToken - The exchange token received from switchEnvironment
+   * @param targetHost - The target environment's host
+   * @param redirectUrl - Optional redirect URL after authentication (defaults to current path)
+   * @returns Complete authentication redirect URL
+   */
+  constructAuthenticationRedirectUrl(
+    exchangeToken: string,
+    targetHost: string,
+    redirectUrl: string = window.location.pathname,
+  ): string {
+    const protocol = window.location.protocol;
+    const port = window.location.port ? `:${window.location.port}` : '';
+    const encodedToken = encodeURIComponent(exchangeToken);
+    const encodedRedirectUrl = encodeURIComponent(redirectUrl);
+
+    return `${protocol}//${targetHost}${port}/vysta/authenticationRedirect?Token=${encodedToken}&RedirectUrl=${encodedRedirectUrl}`;
+  }
+
+  /**
+   * Gets the current environment information from the user's principal.
+   * @returns Current tenant and environment information, or null if not authenticated
+   */
+  getCurrentEnvironmentInfo(): { tenantId: string; envId: string } | null {
+    if (!this.principal) {
+      return null;
+    }
+
+    return {
+      tenantId: this.principal.tenantId,
+      envId: this.principal.envId,
+    };
   }
 
   /**

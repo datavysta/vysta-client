@@ -26,6 +26,8 @@ import type {
   VystaResponse,
   DataResult,
   SelectColumn,
+  EnvironmentAvailable,
+  CreateEnvironmentResponse,
 } from './types.js';
 import type {
   FileInfo,
@@ -65,6 +67,9 @@ export {
   UserProfile,
   VystaResponse,
   DataResult,
+  // Environment switching types
+  EnvironmentAvailable,
+  CreateEnvironmentResponse,
   // File service types
   FileInfo,
   FileUploadResponse,

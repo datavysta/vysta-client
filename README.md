@@ -756,6 +756,130 @@ if (redirectUrl) {
 > you should redirect the user to the provided URL or your application's default location. Both OAuth and password authentication 
 > result in the same authenticated state, allowing you to make API calls with the client.
 
+## Environment and Tenant Switching
+
+The Vysta client supports seamless switching between different environments and tenants while maintaining authentication state. This allows users to work across multiple tenants and environments (dev, staging, production) without needing to re-authenticate.
+
+Users can switch:
+- **Between environments within the same tenant** (e.g., from Production to Staging within TenantA)
+- **Between different tenants and their environments** (e.g., from TenantA-Production to TenantB-Development)
+- **To any environment they have access to**, regardless of tenant boundaries
+
+### Environment and Tenant Switching Methods
+
+| Method | Description | Parameters | Returns |
+|--------|-------------|------------|---------|
+| `getAvailableEnvironments` | Gets list of available environments for the user | none | `Promise<EnvironmentAvailable[]>` |
+| `switchEnvironment` | Initiates a switch to a different environment | `tenantId: string`<br>`environmentId: string` | `Promise<string>` (exchange token) |
+| `constructAuthenticationRedirectUrl` | Builds redirect URL for environment switching | `exchangeToken: string`<br>`targetHost: string`<br>`redirectUrl?: string` | `string` |
+| `getCurrentEnvironmentInfo` | Gets current tenant and environment information | none | `{ tenantId: string; envId: string } \| null` |
+
+### Environment Types
+
+```typescript
+interface EnvironmentAvailable {
+  environmentId: string;
+  environmentName: string;
+  host: string;
+  tenantId: string;
+  tenantName: string;
+}
+
+interface CreateEnvironmentResponse {
+  authExchangeToken: string;
+  tenantId: string;
+  envId: string;
+  host: string;
+}
+```
+
+### Environment and Tenant Switching Workflow
+
+The complete environment and tenant switching process involves these steps:
+
+1. **Get Available Environments** - Fetch all environments across all tenants the user has access to
+2. **Initiate Environment/Tenant Switch** - Get an exchange token for the target tenant and environment
+3. **Exchange Token** - Exchange the token for new authentication credentials in the target tenant/environment
+4. **Update Client Host** - Update the client's host to point to the new environment
+
+```typescript
+// 1. Get available environments across all accessible tenants
+const environments = await client.getAvailableEnvironments();
+console.log('Available environments:', environments);
+
+// Environments are grouped by tenant - you can switch to any combination
+// Example: environments might include:
+// - TenantA: Production, Staging, Development
+// - TenantB: Production, Testing
+// - TenantC: Production
+
+// 2. Switch to a specific tenant and environment
+const targetEnvironment = environments.find(env => 
+  env.tenantName === 'TenantB' && env.environmentName === 'Production'
+);
+
+const exchangeToken = await client.switchEnvironment(
+  targetEnvironment.tenantId,    // Switch to different tenant
+  targetEnvironment.environmentId // Switch to specific environment within that tenant
+);
+
+// 3. Exchange token for new authentication in target tenant/environment
+const newAuthResult = await client.exchangeToken(exchangeToken);
+
+// 4. Update client host to target environment
+client.setHost(targetEnvironment.host);
+
+// 5. Get current tenant and environment info
+const currentEnv = client.getCurrentEnvironmentInfo();
+console.log('Current tenant:', currentEnv.tenantId);
+console.log('Current environment:', currentEnv.envId);
+```
+
+### URL-Based Environment and Tenant Switching
+
+For applications that need to redirect to different hosts (potentially different tenant domains):
+
+```typescript
+// Construct redirect URL for environment/tenant switching
+const redirectUrl = client.constructAuthenticationRedirectUrl(
+  exchangeToken,
+  targetEnvironment.host,    // Could be a completely different domain for different tenant
+  '/my-app/dashboard'        // Optional: where to redirect after switch
+);
+
+// Redirect to target tenant/environment
+window.location.href = redirectUrl;
+```
+
+### Error Handling
+
+Environment and tenant switching can fail for several reasons:
+
+```typescript
+try {
+  const exchangeToken = await client.switchEnvironment(tenantId, environmentId);
+  // ... continue with token exchange
+} catch (error) {
+  if (error.message.includes('Access denied')) {
+    console.log('User does not have access to target tenant/environment');
+  } else if (error.message.includes('Environment switch failed')) {
+    console.log('Environment/tenant switch request failed');
+  } else {
+    console.log('Unexpected error:', error.message);
+  }
+}
+```
+
+### Security Considerations
+
+- **Exchange tokens are short-lived and single-use** - Use them immediately after receiving
+- **Original access tokens are never sent to different tenants/environments** - Each tenant/environment gets its own isolated tokens
+- **All API calls require proper authorization headers** - The client handles this automatically
+- **Token refresh logic handles expiration during tenant/environment switches** - Automatic token management
+- **Tenant isolation is maintained** - Switching between tenants maintains proper security boundaries
+
+> **Example**: See the [Environment Switching Demo](examples/auth/environment-switching.html) for a complete working implementation with multi-tenant environment switching, UI, and debug information.
+
 ## License
 
 MIT
