@@ -534,7 +534,6 @@ const newUser = await userService.createUser({
   name: 'John Smith',
   email: 'john.smith@example.com',
   roleIds: [userRoleId], // UUID from the roles list
-  disabled: false,
   forceChange: true
 });
 
@@ -543,17 +542,15 @@ const newUserWithRedirect = await userService.createUser({
   name: 'Jane Doe',
   email: 'jane.doe@example.com',
   roleIds: [userRoleId],
-  disabled: false,
   forceChange: true,
-  redirectUrl: '/custom/onboarding' // Custom path for invitation acceptance
+  invitationRedirectUrl: '/custom/onboarding' // Custom path for invitation acceptance
 });
 
 // Update a user
 await userService.updateUser(userId, {
   name: 'Jane Doe',
   email: 'jane@example.com',
-  roleIds: [adminRoleId], // UUID from the roles list
-  disabled: false
+  roleIds: [adminRoleId] // UUID from the roles list
 });
 
 // User management operations
@@ -588,15 +585,14 @@ interface User {
 
 // For creating users, use this structure
 interface CreateUserData {
-  name: string;
-  email: string;
-  roleIds: string[]; // Array of role UUIDs
+  name?: string;
+  email?: string;
+  roleIds?: string[]; // Array of role UUIDs
   phoneNumber?: string;
-  disabled?: boolean;
   forceChange?: boolean;
   properties?: string;
   password?: string;
-  redirectUrl?: string; // Optional custom redirect URL for invitation emails
+  invitationRedirectUrl?: string; // Optional custom redirect URL for invitation emails
 }
 ```
 

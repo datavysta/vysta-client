@@ -13,7 +13,6 @@ const mockUser: CreateUserData = {
   email: `${uniquePrefix}_user@example.com`,
   roleIds: [], // Will be populated in beforeAll
   phoneNumber: '555-123-4567',
-  disabled: false,
   forceChange: false,
 };
 

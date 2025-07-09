@@ -21,13 +21,15 @@ export interface User {
   password?: string;
 }
 
-// Derive CreateUserData from User
-export type CreateUserData = Pick<User, 'name' | 'email'> &
-  Partial<Pick<User, 'phoneNumber' | 'disabled' | 'forceChange' | 'properties' | 'password'>> & {
-    // For creating users, we use arrays of role IDs
-    roleIds: string[];
-    redirectUrl?: string;
-  };
+// Match server's ImportUser interface, reusing fields from User where possible
+export type CreateUserData = Partial<
+  Pick<User, 'name' | 'email' | 'phoneNumber' | 'forceChange' | 'properties' | 'password'>
+> & {
+  // Server expects roleIds as string array, but User interface has it as comma-delimited string
+  roleIds?: string[]; // UUIDs as strings
+  // Server-specific field that doesn't exist in User interface
+  invitationRedirectUrl?: string;
+};
 
 export class VystaAdminUserService extends VystaAdminService<User> {
   constructor(client: VystaClient) {
