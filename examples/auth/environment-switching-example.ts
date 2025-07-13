@@ -1,5 +1,4 @@
-import { VystaClient } from '../../src/VystaClient';
-import { EnvironmentAvailable } from '../../src/types';
+import { VystaClient, EnvironmentAvailable } from 'vysta-client';
 import { CustomerService } from '../querying/services';
 
 const client = new VystaClient({
@@ -156,7 +155,7 @@ loadEnvironmentsButton.addEventListener('click', async () => {
     }, {} as Record<string, EnvironmentAvailable[]>);
     
     // Display environments grouped by tenant
-    Object.entries(environmentsByTenant).forEach(([tenantName, envs]) => {
+    (Object.entries(environmentsByTenant) as [string, EnvironmentAvailable[]][]).forEach(([tenantName, envs]) => {
       const tenantSection = document.createElement('div');
       tenantSection.style.cssText = 'margin-bottom: 15px; padding: 10px; border: 1px solid #e5e7eb; border-radius: 4px;';
       

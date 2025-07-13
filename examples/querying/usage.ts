@@ -1,6 +1,5 @@
-import { VystaClient } from '../../src/VystaClient';
+import { VystaClient, QueryParams } from 'vysta-client';
 import { ProductService } from './services';
-import { QueryParams } from '../../src/types';
 import { Product } from './types';
 
 async function example() {

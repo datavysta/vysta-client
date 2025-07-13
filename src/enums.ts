@@ -17,3 +17,20 @@ export enum Aggregate {
   MAX = 'MAX',
   AVG = 'AVG',
 }
+
+export enum PasswordResetStatus {
+  VALID = 0,
+  EXPIRED = 1,
+  NOT_FOUND = 2,
+  INVALID_CODE = 3,
+  COMPLETED = 4,
+  PASSWORDS_MUST_MATCH = 5,
+  PASSWORD_REUSED = 6,
+}
+
+export enum InvitationStatus {
+  VALID = 0,
+  EXPIRED = 1,
+  NOT_FOUND = 2,
+  ALREADY_ACCEPTED = 3,
+}

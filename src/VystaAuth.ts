@@ -1,6 +1,7 @@
 import { jwtDecode } from 'jwt-decode';
 
 import { AuthResult, Principal, UserProfile, EnvironmentAvailable } from './types.js';
+import { PasswordResetStatus, InvitationStatus } from './enums.js';
 
 export enum TokenKey {
   AccessToken = 'accessToken',
@@ -64,6 +65,55 @@ interface JwtWithPrincipal {
 export interface SignInInfo {
   id: string;
   name: string;
+}
+
+// Password Reset and Invitation related interfaces
+export interface ForgotPasswordParams {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  exists: boolean;
+}
+
+export interface ValidateCodeParams {
+  email: string; // Required for password reset
+  code: string; // Required for password reset
+}
+
+export interface ValidateCodeResponse {
+  status: PasswordResetStatus;
+}
+
+export interface ChangePasswordParams {
+  email: string;
+  code: string;
+  password: string;
+  passwordConfirmed: string;
+}
+
+export interface ChangePasswordResponse {
+  status: PasswordResetStatus;
+  authenticationResult?: AuthResult;
+}
+
+export interface AcceptInvitationParams {
+  id: string;
+  password: string;
+  passwordConfirmed: string;
+}
+
+export interface AcceptInvitationResponse {
+  status: PasswordResetStatus;
+  authenticationResult?: AuthResult;
+}
+
+export interface ValidateInvitationParams {
+  id: string;
+}
+
+export interface ValidateInvitationResponse {
+  status: InvitationStatus;
 }
 
 /** @internal */
@@ -437,6 +487,140 @@ export class VystaAuth {
       tenantId: this.principal.tenantId,
       envId: this.principal.envId,
     };
+  }
+
+  /**
+   * Initiates a password reset request for a user.
+   * @param email - The user's email address
+   * @returns Promise resolving to information about whether the user exists
+   */
+  async forgotPassword(email: string): Promise<ForgotPasswordResponse> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/auth/forgotPassword`, {
+        method: 'POST',
+        headers: this.buildHeaders(),
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Forgot password request failed: ${response.statusText}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      this.errorHandler.onError(error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
+  }
+
+  /**
+   * Validates a password reset code or invitation.
+   * @param params - Validation parameters including code/invitation details
+   * @returns Promise resolving to validation status
+   */
+  async validateCode(params: ValidateCodeParams): Promise<ValidateCodeResponse> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/auth/validateCode`, {
+        method: 'POST',
+        headers: this.buildHeaders(),
+        body: JSON.stringify(params),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Code validation failed: ${response.statusText}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      this.errorHandler.onError(error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
+  }
+
+  /**
+   * Changes a user's password using a reset code.
+   * @param params - Password change parameters including email, code, and new password
+   * @returns Promise resolving to status and optional authentication result
+   */
+  async changePassword(params: ChangePasswordParams): Promise<ChangePasswordResponse> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/auth/changePassword`, {
+        method: 'POST',
+        headers: this.buildHeaders(),
+        body: JSON.stringify(params),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Password change failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      // If authentication result is provided, initialize the client with it
+      if (result.authenticationResult) {
+        await this.reinitializeFromAuthenticationResult(result.authenticationResult);
+      }
+
+      return result;
+    } catch (error) {
+      this.errorHandler.onError(error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
+  }
+
+  /**
+   * Accepts an invitation and sets the user's password.
+   * @param params - Invitation acceptance parameters including invitation ID and password
+   * @returns Promise resolving to status and optional authentication result
+   */
+  async acceptInvitation(params: AcceptInvitationParams): Promise<AcceptInvitationResponse> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/auth/acceptInvitation`, {
+        method: 'POST',
+        headers: this.buildHeaders(),
+        body: JSON.stringify(params),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Invitation acceptance failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      // If authentication result is provided, initialize the client with it
+      if (result.authenticationResult) {
+        await this.reinitializeFromAuthenticationResult(result.authenticationResult);
+      }
+
+      return result;
+    } catch (error) {
+      this.errorHandler.onError(error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
+  }
+
+  /**
+   * Validates an invitation using just the invitation ID.
+   * @param params - Invitation validation parameters with just the invitation ID
+   * @returns Promise resolving to validation status
+   */
+  async validateInvitation(params: ValidateInvitationParams): Promise<ValidateInvitationResponse> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/auth/validateInvitation`, {
+        method: 'POST',
+        headers: this.buildHeaders(),
+        body: JSON.stringify(params),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Invitation validation failed: ${response.statusText}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      this.errorHandler.onError(error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
   }
 
   /**

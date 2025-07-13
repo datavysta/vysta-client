@@ -752,6 +752,309 @@ if (redirectUrl) {
 > you should redirect the user to the provided URL or your application's default location. Both OAuth and password authentication 
 > result in the same authenticated state, allowing you to make API calls with the client.
 
+## Password Reset and Invitation Authentication
+
+The Vysta client provides comprehensive support for password reset and invitation workflows. These endpoints work without authentication, allowing users to reset their passwords or accept invitations when they're not logged in.
+
+### Methods
+
+| Method | Description | Parameters | Returns |
+|--------|-------------|------------|---------|
+| `forgotPassword` | Initiates password reset for user | `email: string` | `Promise<ForgotPasswordResponse>` |
+| `validateCode` | Validates reset code or invitation | `params: ValidateCodeParams` | `Promise<ValidateCodeResponse>` |
+| `validateInvitation` | Validates invitation using just ID | `params: ValidateInvitationParams` | `Promise<ValidateInvitationResponse>` |
+| `changePassword` | Changes password using reset code | `params: ChangePasswordParams` | `Promise<ChangePasswordResponse>` |
+| `acceptInvitation` | Accepts invitation and sets password | `params: AcceptInvitationParams` | `Promise<AcceptInvitationResponse>` |
+
+### Types and Enums
+
+```typescript
+// Status enum for password reset operations
+enum PasswordResetStatus {
+  VALID = 0,
+  EXPIRED = 1,
+  NOT_FOUND = 2,
+  INVALID_CODE = 3,
+  COMPLETED = 4,
+  PASSWORDS_MUST_MATCH = 5,
+  PASSWORD_REUSED = 6,
+}
+
+// Status enum for invitation operations
+enum InvitationStatus {
+  VALID = 0,
+  EXPIRED = 1,
+  NOT_FOUND = 2,
+  ALREADY_ACCEPTED = 3,
+}
+
+
+
+// Forgot Password
+interface ForgotPasswordResponse {
+  exists: boolean;  // Whether the user exists in the system
+}
+
+// Validate Code
+interface ValidateCodeParams {
+  email: string;           // Required for password reset
+  code: string;            // Required for password reset
+}
+
+interface ValidateCodeResponse {
+  status: PasswordResetStatus;
+}
+
+// Validate Invitation
+interface ValidateInvitationParams {
+  id: string;
+}
+
+interface ValidateInvitationResponse {
+  status: InvitationStatus;
+}
+
+// Change Password
+interface ChangePasswordParams {
+  email: string;
+  code: string;
+  password: string;
+  passwordConfirmed: string;
+}
+
+interface ChangePasswordResponse {
+  status: PasswordResetStatus;
+  authenticationResult?: AuthResult;  // Optional auto-login
+}
+
+// Accept Invitation
+interface AcceptInvitationParams {
+  id: string;
+  password: string;
+  passwordConfirmed: string;
+}
+
+interface AcceptInvitationResponse {
+  status: PasswordResetStatus;
+  authenticationResult?: AuthResult;  // Optional auto-login
+}
+```
+
+### Password Reset Workflow
+
+Complete password reset flow with validation and error handling:
+
+```typescript
+import { 
+  VystaClient, 
+  PasswordResetStatus,
+  InvitationStatus
+} from '@datavysta/vysta-client';
+
+const client = new VystaClient({
+  baseUrl: 'https://api.example.com'
+});
+
+async function resetPassword(email: string, newPassword: string) {
+  try {
+    // Step 1: Initiate password reset
+    const forgotResponse = await client.forgotPassword(email);
+    
+    if (!forgotResponse.exists) {
+      throw new Error('User not found');
+    }
+    
+    console.log('Password reset email sent');
+    
+    // Step 2: User receives email with reset code
+    // In a real app, you would get this from user input
+    const resetCode = 'code-from-email';
+    
+    // Step 3: Validate the reset code
+    const validateResponse = await client.validateCode({
+      email: email,
+      code: resetCode
+    });
+    
+    if (validateResponse.status !== PasswordResetStatus.VALID) {
+      const statusMessages = {
+        [PasswordResetStatus.INVALID_CODE]: 'Invalid reset code',
+        [PasswordResetStatus.EXPIRED]: 'Reset code has expired',
+        [PasswordResetStatus.COMPLETED]: 'Reset code already used',
+        [PasswordResetStatus.NOT_FOUND]: 'Reset code not found',
+        [PasswordResetStatus.PASSWORDS_MUST_MATCH]: 'Passwords must match',
+        [PasswordResetStatus.PASSWORD_REUSED]: 'Cannot reuse previous password'
+      };
+      throw new Error(statusMessages[validateResponse.status] || 'Unknown error');
+    }
+    
+    // Step 4: Change password
+    const changeResponse = await client.changePassword({
+      email: email,
+      code: resetCode,
+      password: newPassword,
+      passwordConfirmed: newPassword
+    });
+    
+    if (changeResponse.status === PasswordResetStatus.VALID || changeResponse.status === PasswordResetStatus.COMPLETED) {
+      console.log('Password changed successfully');
+      
+      // Check if user was automatically logged in
+      if (changeResponse.authenticationResult) {
+        console.log('User automatically logged in');
+        // Client is now authenticated and ready to make API calls
+      }
+    }
+    
+  } catch (error) {
+    console.error('Password reset failed:', error.message);
+    throw error;
+  }
+}
+
+// Usage
+await resetPassword('user@example.com', 'newSecurePassword123');
+```
+
+### Invitation Acceptance Workflow
+
+Complete invitation acceptance flow:
+
+```typescript
+async function acceptInvitation(invitationId: string, password: string) {
+  try {
+    // Step 1: Validate the invitation
+    const validateResponse = await client.validateInvitation({
+      id: invitationId
+    });
+    
+    if (validateResponse.status !== InvitationStatus.VALID) {
+      const statusMessages = {
+        [InvitationStatus.EXPIRED]: 'Invitation has expired',
+        [InvitationStatus.NOT_FOUND]: 'Invitation not found',
+        [InvitationStatus.ALREADY_ACCEPTED]: 'Invitation already accepted'
+      };
+      throw new Error(statusMessages[validateResponse.status] || 'Unknown error');
+    }
+    
+    // Step 2: Accept invitation and set password
+    const acceptResponse = await client.acceptInvitation({
+      id: invitationId,
+      password: password,
+      passwordConfirmed: password
+    });
+    
+    if (acceptResponse.status === PasswordResetStatus.VALID || acceptResponse.status === PasswordResetStatus.COMPLETED) {
+      console.log('Invitation accepted successfully');
+      
+      // Check if user was automatically logged in
+      if (acceptResponse.authenticationResult) {
+        console.log('User automatically logged in');
+        // Client is now authenticated and ready to make API calls
+      }
+    }
+    
+  } catch (error) {
+    console.error('Invitation acceptance failed:', error.message);
+    throw error;
+  }
+}
+
+// Usage
+await acceptInvitation('invitation-uuid-123', 'newSecurePassword123');
+```
+
+### Error Handling
+
+Both password reset and invitation flows include comprehensive error handling:
+
+```typescript
+async function handlePasswordResetErrors() {
+  try {
+    // For password reset code validation
+    const response = await client.validateCode({
+      email: 'user@example.com',
+      code: 'some-code'
+    });
+    
+    switch (response.status) {
+      case PasswordResetStatus.VALID:
+        console.log('Code is valid, proceed with password change');
+        break;
+      case PasswordResetStatus.INVALID_CODE:
+        console.log('Invalid code, please check and try again');
+        break;
+      case PasswordResetStatus.EXPIRED:
+        console.log('Code has expired, request a new one');
+        break;
+      case PasswordResetStatus.COMPLETED:
+        console.log('Code already used, request a new one');
+        break;
+      case PasswordResetStatus.NOT_FOUND:
+        console.log('Code not found, request a new one');
+        break;
+      case PasswordResetStatus.PASSWORDS_MUST_MATCH:
+        console.log('Passwords must match');
+        break;
+      case PasswordResetStatus.PASSWORD_REUSED:
+        console.log('Cannot reuse previous password');
+        break;
+    }
+  } catch (error) {
+    if (error.message.includes('Code validation failed')) {
+      console.log('Server error during validation');
+    } else {
+      console.log('Network or other error:', error.message);
+    }
+  }
+}
+
+async function handleInvitationErrors() {
+  try {
+    // For invitation validation
+    const response = await client.validateInvitation({
+      id: 'invitation-uuid-123'
+    });
+    
+    switch (response.status) {
+      case InvitationStatus.VALID:
+        console.log('Invitation is valid, proceed with acceptance');
+        break;
+      case InvitationStatus.EXPIRED:
+        console.log('Invitation has expired, request a new one');
+        break;
+      case InvitationStatus.NOT_FOUND:
+        console.log('Invitation not found');
+        break;
+      case InvitationStatus.ALREADY_ACCEPTED:
+        console.log('Invitation already accepted');
+        break;
+    }
+  } catch (error) {
+    if (error.message.includes('Invitation validation failed')) {
+      console.log('Server error during invitation validation');
+    } else {
+      console.log('Network or other error:', error.message);
+    }
+  }
+}
+```
+
+### Key Features
+
+- **Unauthenticated Access**: All endpoints work without authentication tokens
+- **Auto-Login**: Password change and invitation acceptance can automatically log users in
+- **Comprehensive Validation**: Detailed status codes for all operations
+- **Dedicated Endpoints**: Separate endpoints for password reset codes (`validateCode`) and invitations (`validateInvitation`)
+- **Separate Status Enums**: Password-setting operations use `PasswordResetStatus`, invitation validation uses `InvitationStatus`
+- **Error Handling**: Proper error messages and status codes
+- **Type Safety**: Full TypeScript support with enums and interfaces
+- **Security**: Separate endpoints for different operations with proper validation
+
+> **Note**: Password reset operations (`forgotPassword`, `validateCode`, `changePassword`) and password-setting operations (`acceptInvitation`) use `PasswordResetStatus` enum, while invitation validation (`validateInvitation`) uses `InvitationStatus` enum. For password-setting operations, both `VALID` (0) and `COMPLETED` (4) statuses indicate success.
+
+> **Example**: See the [Password Reset Demo](examples/auth/password-reset.html) for a complete working implementation with UI forms and error handling.
+
 ## Environment and Tenant Switching
 
 The Vysta client supports seamless switching between different environments and tenants while maintaining authentication state. This allows users to work across multiple tenants and environments (dev, staging, production) without needing to re-authenticate.

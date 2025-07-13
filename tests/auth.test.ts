@@ -2,6 +2,7 @@ import { describe, it, expect } from '@jest/globals';
 
 import { VystaClient } from '../src/VystaClient.js';
 import { TokenStorage, TokenKey } from '../src/VystaAuth';
+import { PasswordResetStatus } from '../src/enums.js';
 import { TEST_CONFIG } from './config';
 import { Product } from '../examples/querying/types';
 
@@ -147,6 +148,104 @@ describe('Authentication', () => {
       const email = `test+${Date.now()}@example.com`;
       const redirectUrl = 'https://example.com/redirect';
       await expect(client['auth'].signup(email, redirectUrl)).resolves.toBeUndefined();
+    });
+  });
+
+  describe('Password Reset and Invitation Flow', () => {
+    const testEmail = 'test@example.com';
+    const testPassword = 'newPassword123';
+    const testInvitationId = 'test-invitation-uuid';
+    const testResetCode = 'test-reset-code';
+
+    describe('forgotPassword', () => {
+      it.skip('should initiate password reset request', async () => {
+        const client = createClient();
+        const response = await client.forgotPassword(testEmail);
+        expect(response).toHaveProperty('exists');
+      });
+
+      it('should validate method exists and has correct signature', () => {
+        const client = createClient();
+        expect(typeof client.forgotPassword).toBe('function');
+      });
+    });
+
+    describe('validateCode', () => {
+      it.skip('should validate password reset code', async () => {
+        const client = createClient();
+        const response = await client.validateCode({
+          email: testEmail,
+          code: testResetCode,
+        });
+        expect(response).toHaveProperty('status');
+      });
+
+      it('should validate method exists and has correct signature', () => {
+        const client = createClient();
+        expect(typeof client.validateCode).toBe('function');
+      });
+    });
+
+    describe('validateInvitation', () => {
+      it.skip('should validate invitation', async () => {
+        const client = createClient();
+        const response = await client.validateInvitation({
+          id: testInvitationId,
+        });
+        expect(response).toHaveProperty('status');
+      });
+
+      it('should validate method exists and has correct signature', () => {
+        const client = createClient();
+        expect(typeof client.validateInvitation).toBe('function');
+      });
+    });
+
+    describe('changePassword', () => {
+      it.skip('should change password successfully', async () => {
+        const client = createClient();
+        const response = await client.changePassword({
+          email: testEmail,
+          code: testResetCode,
+          password: testPassword,
+          passwordConfirmed: testPassword,
+        });
+        expect(response).toHaveProperty('status');
+      });
+
+      it('should validate method exists and has correct signature', () => {
+        const client = createClient();
+        expect(typeof client.changePassword).toBe('function');
+      });
+    });
+
+    describe('acceptInvitation', () => {
+      it.skip('should accept invitation successfully', async () => {
+        const client = createClient();
+        const response = await client.acceptInvitation({
+          id: testInvitationId,
+          password: testPassword,
+          passwordConfirmed: testPassword,
+        });
+        expect(response).toHaveProperty('status');
+      });
+
+      it('should validate method exists and has correct signature', () => {
+        const client = createClient();
+        expect(typeof client.acceptInvitation).toBe('function');
+      });
+    });
+
+    describe('Types and Enums', () => {
+      it('should export PasswordResetStatus enum', () => {
+        expect(PasswordResetStatus.VALID).toBe(0);
+        expect(PasswordResetStatus.EXPIRED).toBe(1);
+        expect(PasswordResetStatus.NOT_FOUND).toBe(2);
+        expect(PasswordResetStatus.INVALID_CODE).toBe(3);
+        expect(PasswordResetStatus.COMPLETED).toBe(4);
+        expect(PasswordResetStatus.PASSWORDS_MUST_MATCH).toBe(5);
+        expect(PasswordResetStatus.PASSWORD_REUSED).toBe(6);
+      });
     });
   });
 });

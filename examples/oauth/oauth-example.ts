@@ -1,4 +1,4 @@
-import { VystaClient } from '../../src/VystaClient';
+import { VystaClient } from 'vysta-client';
 
 async function oauthExample() {
   const client = new VystaClient({

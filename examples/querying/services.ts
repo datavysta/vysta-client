@@ -1,6 +1,4 @@
-import { VystaService } from '../../src/base/VystaService';
-import { VystaReadonlyService } from '../../src/base/VystaReadonlyService';
-import { VystaClient } from '../../src/VystaClient';
+import { VystaService, VystaReadonlyService, VystaClient } from 'vysta-client';
 import { Customer, Order, Product, Supplier, OrderDetails, CustomerSummary } from './types';
 
 interface ProductWithValue extends Product {

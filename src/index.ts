@@ -5,11 +5,29 @@ import { VystaWorkflowService } from './base/VystaWorkflowService.js';
 import { VystaFileService } from './VystaFileService.js';
 import { IDataService, IReadonlyDataService } from './IDataService.js';
 import { FileType } from './types.js';
-import { VystaAuth, TokenStorage, TokenKey, AuthErrorHandler } from './VystaAuth.js';
+import {
+  VystaAuth,
+  TokenKey,
+} from './VystaAuth.js';
+import type {
+  TokenStorage,
+  AuthErrorHandler,
+  SignInInfo,
+  ForgotPasswordParams,
+  ForgotPasswordResponse,
+  ValidateCodeParams,
+  ValidateCodeResponse,
+  ChangePasswordParams,
+  ChangePasswordResponse,
+  AcceptInvitationParams,
+  AcceptInvitationResponse,
+  ValidateInvitationParams,
+  ValidateInvitationResponse,
+} from './VystaAuth.js';
 import { VystaRoleService } from './VystaRoleService.js';
 import { VystaPermissionService } from './VystaPermissionService.js';
 import { VystaAdminJobService } from './VystaAdminJobService.js';
-import { JobStatus, Aggregate } from './enums.js';
+import { JobStatus, Aggregate, PasswordResetStatus, InvitationStatus } from './enums.js';
 import type {
   Role,
   ObjectPermission,
@@ -39,7 +57,7 @@ import type {
 import { VystaAdminUserService, CreateUserData, User } from './VystaAdminUserService.js';
 import { VystaTimezoneService, Timezone } from './VystaTimezoneService.js';
 import { GetResponse } from './VystaClient.js';
-import { CacheStorage, CacheEntry, CacheConfig, Range } from './cache/CacheStorage.js';
+import type { CacheStorage, CacheEntry, CacheConfig, Range } from './cache/CacheStorage.js';
 import { DefaultCacheStorage } from './cache/DefaultCacheStorage.js';
 
 export {
@@ -63,13 +81,15 @@ export {
   OrderBy,
   Principal,
   AuthResult,
-  TokenKey,
   UserProfile,
   VystaResponse,
   DataResult,
   // Environment switching types
   EnvironmentAvailable,
   CreateEnvironmentResponse,
+  // Password reset and invitation enums
+  PasswordResetStatus,
+  InvitationStatus,
   // File service types
   FileInfo,
   FileUploadResponse,
@@ -78,8 +98,7 @@ export {
   TusUploadOptions,
   // Auth
   VystaAuth,
-  TokenStorage,
-  AuthErrorHandler,
+  TokenKey,
   // Role service
   VystaRoleService,
   // Permission service
@@ -99,9 +118,30 @@ export {
   Timezone,
   GetResponse,
   // Cache system
+  DefaultCacheStorage,
+};
+
+// Export auth and password reset interface types (type-only exports)
+export type {
+  TokenStorage,
+  AuthErrorHandler,
+  SignInInfo,
+  ForgotPasswordParams,
+  ForgotPasswordResponse,
+  ValidateCodeParams,
+  ValidateCodeResponse,
+  ChangePasswordParams,
+  ChangePasswordResponse,
+  AcceptInvitationParams,
+  AcceptInvitationResponse,
+  ValidateInvitationParams,
+  ValidateInvitationResponse,
+} from './VystaAuth.js';
+
+// Export cache system interface types (type-only exports)
+export type {
   CacheStorage,
   CacheEntry,
   CacheConfig,
   Range,
-  DefaultCacheStorage,
-};
+} from './cache/CacheStorage.js';

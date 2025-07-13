@@ -1,4 +1,4 @@
-import { VystaClient } from '../../src/VystaClient';
+import { VystaClient } from 'vysta-client';
 
 const client = new VystaClient({
   baseUrl: 'http://localhost:8080',

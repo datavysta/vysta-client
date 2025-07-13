@@ -1,4 +1,18 @@
-import { AuthErrorHandler, SignInInfo, TokenStorage, VystaAuth } from './VystaAuth.js';
+import {
+  AuthErrorHandler,
+  SignInInfo,
+  TokenStorage,
+  VystaAuth,
+  ForgotPasswordResponse,
+  ValidateCodeParams,
+  ValidateCodeResponse,
+  ChangePasswordParams,
+  ChangePasswordResponse,
+  AcceptInvitationParams,
+  AcceptInvitationResponse,
+  ValidateInvitationParams,
+  ValidateInvitationResponse,
+} from './VystaAuth.js';
 import type { FilterCondition, QueryParams, UserProfile } from './types.js';
 import { AuthResult, FileType } from './types.js';
 import { CacheStorage, CacheConfig } from './cache/CacheStorage.js';
@@ -337,6 +351,51 @@ export class VystaClient {
 
   async getUserProfile(): Promise<UserProfile> {
     return this.auth.getUserProfile();
+  }
+
+  /**
+   * Initiates a password reset request for a user.
+   * @param email - The user's email address
+   * @returns Promise resolving to information about whether the user exists
+   */
+  async forgotPassword(email: string): Promise<ForgotPasswordResponse> {
+    return this.auth.forgotPassword(email);
+  }
+
+  /**
+   * Validates a password reset code or invitation.
+   * @param params - Validation parameters including code/invitation details
+   * @returns Promise resolving to validation status
+   */
+  async validateCode(params: ValidateCodeParams): Promise<ValidateCodeResponse> {
+    return this.auth.validateCode(params);
+  }
+
+  /**
+   * Changes a user's password using a reset code.
+   * @param params - Password change parameters including email, code, and new password
+   * @returns Promise resolving to status and optional authentication result
+   */
+  async changePassword(params: ChangePasswordParams): Promise<ChangePasswordResponse> {
+    return this.auth.changePassword(params);
+  }
+
+  /**
+   * Accepts an invitation and sets the user's password.
+   * @param params - Invitation acceptance parameters including invitation ID and password
+   * @returns Promise resolving to status and optional authentication result
+   */
+  async acceptInvitation(params: AcceptInvitationParams): Promise<AcceptInvitationResponse> {
+    return this.auth.acceptInvitation(params);
+  }
+
+  /**
+   * Validates an invitation using just the invitation ID.
+   * @param params - Invitation validation parameters with just the invitation ID
+   * @returns Promise resolving to validation status
+   */
+  async validateInvitation(params: ValidateInvitationParams): Promise<ValidateInvitationResponse> {
+    return this.auth.validateInvitation(params);
   }
 
   private serializeSelect<T>(select: QueryParams<T>['select']): string[] | undefined {
