@@ -330,7 +330,9 @@ export class VystaAuth {
 
   async exchangeToken(token: string): Promise<AuthResult> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/auth/exchangeSwitchToken/${token}`);
+      const response = await fetch(`${this.baseUrl}/api/auth/exchangeSwitchToken/${token}`, {
+        headers: this.buildHeaders(null, 'application/json'),
+      });
 
       if (!response.ok) {
         throw new Error(`Token exchange failed: ${response.statusText}`);
