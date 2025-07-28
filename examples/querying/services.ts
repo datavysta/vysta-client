@@ -1,4 +1,4 @@
-import { VystaService, VystaReadonlyService, VystaClient } from 'vysta-client';
+import { VystaService, VystaReadonlyService, VystaClient } from '../../src/index.js';
 import { Customer, Order, Product, Supplier, OrderDetails, CustomerSummary } from './types';
 
 interface ProductWithValue extends Product {

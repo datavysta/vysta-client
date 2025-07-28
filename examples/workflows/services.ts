@@ -1,4 +1,4 @@
-import { VystaClient, VystaWorkflowService } from 'vysta-client';
+import { VystaClient, VystaWorkflowService } from '../../src/index.js';
 
 export interface InputTestInput {
   test: string;

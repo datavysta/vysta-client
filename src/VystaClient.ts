@@ -13,7 +13,7 @@ import {
   ValidateInvitationParams,
   ValidateInvitationResponse,
 } from './VystaAuth.js';
-import type { FilterCondition, QueryParams, UserProfile } from './types.js';
+import type { FilterCondition, QueryParams, UserProfile, EnvironmentAvailable } from './types.js';
 import { AuthResult, FileType } from './types.js';
 import { CacheStorage, CacheConfig } from './cache/CacheStorage.js';
 import { DefaultCacheStorage } from './cache/DefaultCacheStorage.js';
@@ -544,11 +544,52 @@ export class VystaClient {
   }
 
   /**
-   * Updates the host value that will be forwarded with every request via
-   * the \`X-DataVysta-Host\` header.
-   * @param host - The host value to send, or null to clear it
+   * Sets or clears the host value used for the X-DataVysta-Host header.
+   * This can be provided by the developer to force a specific host to be sent
+   * with every request or cleared by passing null.
    */
   setHost(host: string | null): void {
     this.auth.setHost(host);
+  }
+
+  /**
+   * Gets the list of available environments for the current user.
+   * @returns Array of available environments grouped by tenant
+   */
+  async getAvailableEnvironments(): Promise<EnvironmentAvailable[]> {
+    return this.auth.getAvailableEnvironments();
+  }
+
+  /**
+   * Initiates a switch to a different environment.
+   * @param tenantId - The tenant ID of the target environment
+   * @param environmentId - The environment ID to switch to
+   * @returns Exchange token for completing the environment switch
+   */
+  async switchEnvironment(tenantId: string, environmentId: string): Promise<string> {
+    return this.auth.switchEnvironment(tenantId, environmentId);
+  }
+
+  /**
+   * Constructs the authentication redirect URL for environment switching.
+   * @param exchangeToken - The exchange token received from switchEnvironment
+   * @param targetHost - The target environment's host
+   * @param redirectUrl - Optional redirect URL after authentication (defaults to current path)
+   * @returns Complete authentication redirect URL
+   */
+  constructAuthenticationRedirectUrl(
+    exchangeToken: string,
+    targetHost: string,
+    redirectUrl?: string,
+  ): string {
+    return this.auth.constructAuthenticationRedirectUrl(exchangeToken, targetHost, redirectUrl);
+  }
+
+  /**
+   * Gets the current environment information from the user's principal.
+   * @returns Current tenant and environment information, or null if not authenticated
+   */
+  getCurrentEnvironmentInfo(): { tenantId: string; envId: string } | null {
+    return this.auth.getCurrentEnvironmentInfo();
   }
 }
