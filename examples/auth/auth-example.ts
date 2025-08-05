@@ -163,7 +163,14 @@ async function checkAuthStatus() {
   const authStatus = document.getElementById('authStatus')!;
   try {
     const profile = await client.getUserProfile();
-    authStatus.textContent = `Welcome, ${profile.name}`;
+    const roleNames = profile.roles?.map(role => role.name).join(', ') || 'No roles';
+    authStatus.innerHTML = `
+      <div><strong>Welcome, ${profile.name}</strong></div>
+      <div style="font-size: 0.9em; margin-top: 4px;">
+        Email: ${profile.email || 'Not provided'}<br/>
+        Roles: ${roleNames}
+      </div>
+    `;
     authStatus.style.background = '#dcfce7';
     authStatus.style.color = '#166534';
     logoutButton.style.display = 'block';

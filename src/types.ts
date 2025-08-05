@@ -112,6 +112,10 @@ export interface UserProfile {
   disabled: boolean;
   properties: any | null;
   roleId: string;
+  roles: Array<{
+    id: string;
+    name: string;
+  }>;
 }
 
 // Canonical object-level permission model for use across the codebase
