@@ -131,10 +131,16 @@ export class VystaClient {
       Object.entries(params.filters).forEach(([field, conditions]) => {
         if (conditions) {
           Object.entries(conditions as FilterCondition).forEach(([operator, value]) => {
-            const encodedValue =
-              operator === 'like' || operator === 'nlike'
-                ? encodeURIComponent(value as string)
-                : value;
+            let encodedValue: string;
+            if (Array.isArray(value)) {
+              encodedValue = (value as Array<string | number>)
+                .map(v => encodeURIComponent(String(v)))
+                .join(',');
+            } else if (value === undefined || value === null) {
+              encodedValue = '';
+            } else {
+              encodedValue = encodeURIComponent(String(value));
+            }
             queryParts.push(`${field}=${operator}.${encodedValue}`);
           });
         }
