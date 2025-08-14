@@ -1,29 +1,12 @@
-import { VystaClient, VystaConfig } from './VystaClient.js';
+import { VystaClient } from './VystaClient.js';
+import type { VystaConfig } from './VystaClient.js';
 import { VystaService } from './base/VystaService.js';
 import { VystaReadonlyService } from './base/VystaReadonlyService.js';
 import { VystaWorkflowService } from './base/VystaWorkflowService.js';
 import { VystaFileService } from './VystaFileService.js';
-import { IDataService, IReadonlyDataService } from './IDataService.js';
+import type { IDataService, IReadonlyDataService, PrimaryKeyType } from './IDataService.js';
 import { FileType } from './types.js';
-import {
-  VystaAuth,
-  TokenKey,
-} from './VystaAuth.js';
-import type {
-  TokenStorage,
-  AuthErrorHandler,
-  SignInInfo,
-  ForgotPasswordParams,
-  ForgotPasswordResponse,
-  ValidateCodeParams,
-  ValidateCodeResponse,
-  ChangePasswordParams,
-  ChangePasswordResponse,
-  AcceptInvitationParams,
-  AcceptInvitationResponse,
-  ValidateInvitationParams,
-  ValidateInvitationResponse,
-} from './VystaAuth.js';
+import { VystaAuth, TokenKey } from './VystaAuth.js';
 import { VystaRoleService } from './VystaRoleService.js';
 import { VystaPermissionService } from './VystaPermissionService.js';
 import { VystaAdminJobService } from './VystaAdminJobService.js';
@@ -54,10 +37,11 @@ import type {
   FileResult,
   TusUploadOptions,
 } from './VystaFileService.js';
-import { VystaAdminUserService, CreateUserData, User } from './VystaAdminUserService.js';
-import { VystaTimezoneService, Timezone } from './VystaTimezoneService.js';
-import { GetResponse } from './VystaClient.js';
-import type { CacheStorage, CacheEntry, CacheConfig, Range } from './cache/CacheStorage.js';
+import { VystaAdminUserService } from './VystaAdminUserService.js';
+import type { CreateUserData, User } from './VystaAdminUserService.js';
+import { VystaTimezoneService } from './VystaTimezoneService.js';
+import type { Timezone } from './VystaTimezoneService.js';
+import type { GetResponse } from './VystaClient.js';
 import { DefaultCacheStorage } from './cache/DefaultCacheStorage.js';
 
 export {
@@ -66,13 +50,10 @@ export {
   VystaReadonlyService,
   VystaWorkflowService,
   VystaFileService,
-  IDataService,
-  IReadonlyDataService,
   FileType,
   Aggregate,
   SelectColumn,
   // Types
-  VystaConfig,
   QueryParams,
   FilterOperator,
   FilterValue,
@@ -112,11 +93,7 @@ export {
   JobStatus,
   JobSummary,
   VystaAdminUserService,
-  CreateUserData,
-  User,
   VystaTimezoneService,
-  Timezone,
-  GetResponse,
   // Cache system
   DefaultCacheStorage,
 };
@@ -139,9 +116,14 @@ export type {
 } from './VystaAuth.js';
 
 // Export cache system interface types (type-only exports)
-export type {
-  CacheStorage,
-  CacheEntry,
-  CacheConfig,
-  Range,
-} from './cache/CacheStorage.js';
+export type { CacheStorage, CacheEntry, CacheConfig, Range } from './cache/CacheStorage.js';
+
+// Export admin user types (type-only exports)
+export type { CreateUserData, User } from './VystaAdminUserService.js';
+
+// Export service interface types
+export type { IDataService, IReadonlyDataService, PrimaryKeyType } from './IDataService.js';
+
+// Export VystaConfig, Timezone and GetResponse types
+export type { VystaConfig, GetResponse } from './VystaClient.js';
+export type { Timezone } from './VystaTimezoneService.js';
