@@ -34,3 +34,12 @@ export enum InvitationStatus {
   NOT_FOUND = 2,
   ALREADY_ACCEPTED = 3,
 }
+
+/**
+ * Operation types for audit records
+ */
+export enum AuditOperationType {
+  INSERT = 1,
+  UPDATE = 2,
+  DELETE = 3,
+}

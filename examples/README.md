@@ -31,6 +31,11 @@ A sample application demonstrating:
 - Pagination with infinite scroll
 - AG Grid integration with server-side row model
 - Total record count tracking
+- **NEW: Interactive audit functionality**
+  - Editable stock columns with click-to-increment
+  - Real-time audit history modal with timeline view
+  - Color-coded operation types (INSERT/UPDATE/DELETE)
+  - Field-level change tracking with before/after values
 
 ### Workflow Example
 A sample application demonstrating:
@@ -84,6 +89,8 @@ npm run dev
   - Uses record count header for accurate total rows
   - Implements server-side sorting and filtering
   - Demonstrates efficient data loading with pagination
+  - **Interactive audit functionality**: Click 📦 stock buttons to increment inventory and 📋 audit buttons to view change history
+  - Real-time audit timeline with color-coded operations and field-level change tracking
 - `crud/products.html` - Product management with CRUD operations
 - `auth/auth.html` - Authentication example with password and OAuth providers
 - `auth/environment-switching.html` - Environment switching example

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Vysta AG Grid with Caching Demo</title>
     <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@33.0.1/dist/ag-grid-community.min.js"></script>
+    <link rel="stylesheet" href="../components/AuditModal.css">
     <style>
         html, body {
             height: 100%;
@@ -70,6 +71,59 @@
             white-space: nowrap;
             margin-left: 24px;
         }
+        
+        /* Audit button styles */
+        .audit-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .audit-button:hover {
+            background-color: #f0f8ff;
+            transform: scale(1.1);
+        }
+        
+        .audit-button:active {
+            transform: scale(0.95);
+        }
+        
+        /* Stock button styles */
+        .stock-button {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            color: #1976d2;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            min-width: 80px;
+            justify-content: center;
+        }
+        
+        .stock-button:hover {
+            background: #bbdefb;
+            border-color: #64b5f6;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.2);
+        }
+        
+        .stock-button:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 4px rgba(25, 118, 210, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -87,8 +141,9 @@
     </div>
 
     <script type="module">
-        import { VystaClient } from 'vysta-client';
+        import { VystaClient, VystaTableAuditService } from 'vysta-client';
         import { ProductService, SupplierService, OrderService, CustomerService } from './services';
+        import { AuditModal } from '../components/AuditModal.js';
 
         const client = new VystaClient({ 
             baseUrl: 'http://localhost:8080',
@@ -111,19 +166,62 @@
             }
         };
 
+        // Initialize audit service and modal
+        const auditService = new VystaTableAuditService(client);
+        const auditModal = new AuditModal();
+
         // Grid configuration
         const gridOptions = {
             columnDefs: [
                 { field: 'productId', sortable: true },
                 { field: 'productName', sortable: true, filter: true },
                 { field: 'unitPrice', sortable: true },
-                { field: 'unitsInStock', sortable: true },
+                { 
+                    field: 'unitsInStock', 
+                    headerName: 'Units in Stock (Click +1)',
+                    sortable: true,
+                    cellRenderer: function(params) {
+                        const button = document.createElement('button');
+                        button.innerHTML = `📦 ${params.value || 0}`;
+                        button.className = 'stock-button';
+                        button.title = 'Click to increment stock by 1';
+                        
+                        button.addEventListener('click', function() {
+                            window.incrementStock(params.data.productId, params.value || 0);
+                        });
+                        
+                        return button;
+                    }
+                },
                 { 
                     field: '_totalStockValue', 
                     headerName: 'Total Stock Value',
                     sortable: true,
                     valueFormatter: params => {
                         return params.value ? `$${params.value.toFixed(2)}` : '';
+                    }
+                },
+                {
+                    field: 'audit',
+                    headerName: 'Audit',
+                    width: 80,
+                    sortable: false,
+                    filter: false,
+                    resizable: false,
+                    pinned: 'right',
+                    cellRenderer: function(params) {
+                        // Create a button element
+                        const button = document.createElement('button');
+                        button.className = 'audit-button';
+                        button.innerHTML = '📋';
+                        button.title = 'View audit history';
+                        
+                        // Add click event listener
+                        button.addEventListener('click', function() {
+                            window.showAudit(params.data.productId);
+                        });
+                        
+                        return button;
                     }
                 }
             ],
@@ -254,6 +352,54 @@
                 }, 3000);
             }
         }
+
+        // Global function to show audit modal
+        window.showAudit = async function(productId) {
+            try {
+                console.log(`🔍 Opening audit history for Product ID: ${productId}`);
+                
+                // Open audit modal with product data
+                await auditModal.open(
+                    'Northwinds',           // connection name
+                    'Products',             // table name
+                    { productId: productId }, // primary key
+                    auditService            // audit service instance
+                );
+            } catch (error) {
+                console.error('Failed to show audit history:', error);
+                alert(`Failed to load audit history: ${error.message}`);
+            }
+        };
+
+        // Global function to increment stock
+        window.incrementStock = async function(productId, currentStock) {
+            try {
+                console.log(`📦 Incrementing stock for Product ID: ${productId} from ${currentStock} to ${currentStock + 1}`);
+                
+                // Update the stock
+                const affected = await services.products.update(productId, { 
+                    unitsInStock: currentStock + 1 
+                });
+                
+                if (affected > 0) {
+                    console.log(`✅ Successfully updated stock for Product ID: ${productId}`);
+                    
+                    // Refresh the grid to show updated values
+                    if (gridApi) {
+                        gridApi.refreshInfiniteCache();
+                    }
+                    
+                    // Update cache status
+                    updateCacheStatus(`✅ Stock updated for Product ${productId}: ${currentStock} → ${currentStock + 1}`);
+                } else {
+                    console.warn(`⚠️ No rows affected when updating Product ID: ${productId}`);
+                    alert('Failed to update stock - no rows affected');
+                }
+            } catch (error) {
+                console.error('Failed to increment stock:', error);
+                alert(`Failed to increment stock: ${error.message}`);
+            }
+        };
     </script>
 </body>
 </html> 
