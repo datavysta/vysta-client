@@ -125,10 +125,10 @@ export class AuditModal {
 
     let html = '<div class="timeline">';
     
-    auditData.forEach((record, index) => {
-      const operation = this.getOperationTypeDisplay(record.operation_type);
-      const isFirstOfDay = index === 0 || 
-        this.formatAuditDate(record.timestamp) !== this.formatAuditDate(auditData[index - 1]?.timestamp);
+      auditData.forEach((record, index) => {
+        const operation = this.getOperationTypeDisplay(record.operationType);
+        const isFirstOfDay = index === 0 || 
+          this.formatAuditDate(record.timestamp) !== this.formatAuditDate(auditData[index - 1]?.timestamp);
 
       // Parse changed fields
       let changedFields = {};
@@ -154,7 +154,7 @@ export class AuditModal {
             <div class="timeline-header">
               <div class="timeline-action">
                 <span class="timeline-operation ${operation.label.toLowerCase()}">${operation.label}</span>
-                <span class="timeline-user">${this.getUserActionText(record.operation_type, record.username)}</span>
+                <span class="timeline-user">${this.getUserActionText(record.operationType, record.username)}</span>
               </div>
               <div class="timeline-time">${this.formatAuditTime(record.timestamp)}</div>
             </div>
