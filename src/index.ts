@@ -10,7 +10,7 @@ import { VystaAuth, TokenKey } from './VystaAuth.js';
 import { VystaRoleService } from './VystaRoleService.js';
 import { VystaPermissionService } from './VystaPermissionService.js';
 import { VystaAdminJobService } from './VystaAdminJobService.js';
-import { JobStatus, Aggregate, PasswordResetStatus, InvitationStatus } from './enums.js';
+import { JobStatus, Aggregate, PasswordResetStatus, InvitationStatus, OperationType } from './enums.js';
 import type {
   Role,
   ObjectPermission,
@@ -29,6 +29,9 @@ import type {
   SelectColumn,
   EnvironmentAvailable,
   CreateEnvironmentResponse,
+  AuditEvent,
+  AuditRequest,
+  AuditResponse,
 } from './types.js';
 import type {
   FileInfo,
@@ -41,6 +44,7 @@ import { VystaAdminUserService } from './VystaAdminUserService.js';
 import type { CreateUserData, User } from './VystaAdminUserService.js';
 import { VystaTimezoneService } from './VystaTimezoneService.js';
 import type { Timezone } from './VystaTimezoneService.js';
+import { VystaTableAuditService } from './VystaTableAuditService.js';
 import type { GetResponse } from './VystaClient.js';
 import { DefaultCacheStorage } from './cache/DefaultCacheStorage.js';
 
@@ -94,6 +98,9 @@ export {
   JobSummary,
   VystaAdminUserService,
   VystaTimezoneService,
+  VystaTableAuditService,
+  // Enums
+  OperationType,
   // Cache system
   DefaultCacheStorage,
 };
@@ -127,3 +134,6 @@ export type { IDataService, IReadonlyDataService, PrimaryKeyType } from './IData
 // Export VystaConfig, Timezone and GetResponse types
 export type { VystaConfig, GetResponse } from './VystaClient.js';
 export type { Timezone } from './VystaTimezoneService.js';
+
+// Export audit types (type-only exports)
+export type { AuditEvent, AuditRequest, AuditResponse } from './types.js';

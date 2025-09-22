@@ -1224,6 +1224,98 @@ const jobId = await workflows.inputTestAsync({ test: 'example async' });
 console.log('Workflow started asynchronously with Job ID:', jobId);
 ```
 
+### Table Audit Service
+
+The `VystaTableAuditService` provides access to audit history for database table rows, allowing you to track changes, who made them, and when they occurred.
+
+```typescript
+import { VystaClient, VystaTableAuditService, OperationType } from '@datavysta/vysta-client';
+
+const client = new VystaClient({ baseUrl: 'http://localhost:8080' });
+const auditService = new VystaTableAuditService(client);
+
+// Get audit history for a specific row
+const auditHistory = await auditService.getTableAudit(
+  'Northwinds',           // connection name
+  'Products',             // table name
+  { productId: 123 },     // primary key fields
+  { limit: 50, offset: 0 } // optional pagination
+);
+
+// Process audit events
+auditHistory.results.forEach(event => {
+  console.log(`${event.username} performed ${getOperationType(event.operation_type)} at ${event.timestamp}`);
+  
+  // Parse field changes if available
+  if (event.changedFields) {
+    const changes = JSON.parse(event.changedFields);
+    Object.entries(changes).forEach(([field, change]) => {
+      console.log(`  ${field}: ${change.before} → ${change.after}`);
+    });
+  }
+});
+
+function getOperationType(type: number): string {
+  switch (type) {
+    case OperationType.INSERT: return 'INSERT';
+    case OperationType.UPDATE: return 'UPDATE'; 
+    case OperationType.DELETE: return 'DELETE';
+    default: return 'UNKNOWN';
+  }
+}
+```
+
+#### Audit Types
+
+```typescript
+// Operation type enum
+enum OperationType {
+  INSERT = 1,
+  UPDATE = 2,
+  DELETE = 3,
+}
+
+// Audit event structure
+interface AuditEvent {
+  id: string;              // UUID of the audit record
+  operation_type: number;  // OperationType enum value
+  timestamp: string;       // ISO 8601 timestamp
+  username: string;        // User who made the change
+  changedFields: string;   // JSON string of field changes
+}
+
+// Request structure (primary key fields)
+interface AuditRequest {
+  [key: string]: any;      // Primary key column names to values
+}
+
+// Response structure
+interface AuditResponse {
+  results: AuditEvent[];   // Array of audit events
+}
+```
+
+#### Field Change Format
+
+The `changedFields` property contains a JSON string with before/after values:
+
+```typescript
+// Example changedFields JSON:
+{
+  "unitPrice": {
+    "before": "25.00",
+    "after": "29.99"
+  },
+  "unitsInStock": {
+    "before": "10", 
+    "after": "15"
+  }
+}
+
+// For INSERT operations, only "after" values are present
+// For DELETE operations, only "before" values are present
+```
+
 ### Job Service
 
 For retrieving the status and details of jobs, especially those initiated by asynchronous workflows, use the `VystaAdminJobService`.

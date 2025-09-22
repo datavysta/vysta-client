@@ -153,3 +153,20 @@ export interface JobSummary {
   version?: number;
   modifiedOn?: string; // ZonedDateTime (ISO 8601 string)
 }
+
+// Table audit interfaces
+export interface AuditEvent {
+  id: string; // UUID
+  operation_type: number; // 1=INSERT, 2=UPDATE, 3=DELETE
+  timestamp: string; // ISO 8601 date-time string
+  username: string;
+  changedFields: string; // JSON string of field changes
+}
+
+export interface AuditRequest {
+  [key: string]: any; // Primary key fields as key-value pairs
+}
+
+export interface AuditResponse {
+  results: AuditEvent[];
+}

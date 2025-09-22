@@ -34,3 +34,9 @@ export enum InvitationStatus {
   NOT_FOUND = 2,
   ALREADY_ACCEPTED = 3,
 }
+
+export enum OperationType {
+  INSERT = 1,
+  UPDATE = 2,
+  DELETE = 3,
+}
