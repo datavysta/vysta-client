@@ -154,19 +154,58 @@ export interface JobSummary {
   modifiedOn?: string; // ZonedDateTime (ISO 8601 string)
 }
 
-// Table audit interfaces
-export interface AuditEvent {
-  id: string; // UUID
-  operation_type: number; // 1=INSERT, 2=UPDATE, 3=DELETE
-  timestamp: string; // ISO 8601 date-time string
-  username: string;
-  changedFields: string; // JSON string of field changes
+// Enhanced audit types with stronger typing
+export type UUID = string;
+
+/**
+ * Represents a single field change in an audit record
+ */
+export interface AuditFieldChange {
+  before?: unknown;
+  after?: unknown;
+  before_display?: string;
+  after_display?: string;
 }
 
+/**
+ * Represents an audit record for table data changes
+ */
+export interface AuditRecord {
+  id: UUID;
+  name?: string | null;
+  createdOn: string;
+  modifiedOn?: string | null;
+  connectionId: UUID;
+  schemaName?: string | null;
+  tableName: string;
+  operationType: number; // Use AuditOperationType enum (camelCase from API)
+  rowKey: string;
+  changedFields: string; // JSON string containing field changes
+  userId?: UUID;
+  username?: string;
+  timestamp: string; // ISO date string
+  tenantId: string;
+  envId: string;
+}
+
+/**
+ * Parsed audit record with typed changedFields
+ */
+export interface ParsedAuditRecord extends Omit<AuditRecord, 'changedFields'> {
+  changedFields: Record<string, AuditFieldChange>;
+}
+
+/**
+ * Request structure for audit queries (primary key fields)
+ */
 export interface AuditRequest {
   [key: string]: any; // Primary key fields as key-value pairs
 }
 
+/**
+ * Response from the audit API endpoint
+ */
 export interface AuditResponse {
-  results: AuditEvent[];
+  recordCount: number;
+  results: AuditRecord[];
 }

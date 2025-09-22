@@ -1229,12 +1229,17 @@ console.log('Workflow started asynchronously with Job ID:', jobId);
 The `VystaTableAuditService` provides access to audit history for database table rows, allowing you to track changes, who made them, and when they occurred.
 
 ```typescript
-import { VystaClient, VystaTableAuditService, OperationType } from '@datavysta/vysta-client';
+import { 
+  VystaClient, 
+  VystaTableAuditService, 
+  AuditOperationType,
+  ParsedAuditRecord 
+} from '@datavysta/vysta-client';
 
 const client = new VystaClient({ baseUrl: 'http://localhost:8080' });
 const auditService = new VystaTableAuditService(client);
 
-// Get audit history for a specific row
+// Get raw audit history
 const auditHistory = await auditService.getTableAudit(
   'Northwinds',           // connection name
   'Products',             // table name
@@ -1242,24 +1247,31 @@ const auditHistory = await auditService.getTableAudit(
   { limit: 50, offset: 0 } // optional pagination
 );
 
-// Process audit events
-auditHistory.results.forEach(event => {
-  console.log(`${event.username} performed ${getOperationType(event.operation_type)} at ${event.timestamp}`);
+// Get strongly typed audit history with parsed changedFields
+const parsedAudit = await auditService.getTableAuditParsed(
+  'Northwinds',
+  'Products', 
+  { productId: 123 }
+);
+
+// Process parsed audit records (recommended approach)
+parsedAudit.forEach(record => {
+  console.log(`${record.username} performed ${getOperationType(record.operationType)} at ${record.timestamp}`);
   
-  // Parse field changes if available
-  if (event.changedFields) {
-    const changes = JSON.parse(event.changedFields);
-    Object.entries(changes).forEach(([field, change]) => {
-      console.log(`  ${field}: ${change.before} → ${change.after}`);
-    });
-  }
+  // changedFields is now strongly typed!
+  Object.entries(record.changedFields).forEach(([field, change]) => {
+    console.log(`  ${field}: ${change.before} → ${change.after}`);
+    if (change.before_display || change.after_display) {
+      console.log(`    Display: ${change.before_display} → ${change.after_display}`);
+    }
+  });
 });
 
 function getOperationType(type: number): string {
   switch (type) {
-    case OperationType.INSERT: return 'INSERT';
-    case OperationType.UPDATE: return 'UPDATE'; 
-    case OperationType.DELETE: return 'DELETE';
+    case AuditOperationType.INSERT: return 'INSERT';
+    case AuditOperationType.UPDATE: return 'UPDATE'; 
+    case AuditOperationType.DELETE: return 'DELETE';
     default: return 'UNKNOWN';
   }
 }
@@ -1268,20 +1280,46 @@ function getOperationType(type: number): string {
 #### Audit Types
 
 ```typescript
-// Operation type enum
-enum OperationType {
+// Operation type enum for audit records
+enum AuditOperationType {
   INSERT = 1,
   UPDATE = 2,
   DELETE = 3,
 }
 
-// Audit event structure
-interface AuditEvent {
-  id: string;              // UUID of the audit record
-  operation_type: number;  // OperationType enum value
-  timestamp: string;       // ISO 8601 timestamp
-  username: string;        // User who made the change
+// UUID type alias
+type UUID = string;
+
+// Single field change in an audit record
+interface AuditFieldChange {
+  before?: unknown;
+  after?: unknown;
+  before_display?: string;  // Human-readable before value
+  after_display?: string;   // Human-readable after value
+}
+
+// Complete audit record structure
+interface AuditRecord {
+  id: UUID;
+  name?: string | null;
+  createdOn: string;
+  modifiedOn?: string | null;
+  connectionId: UUID;
+  schemaName?: string | null;
+  tableName: string;
+  operationType: number;    // AuditOperationType enum value (camelCase)
+  rowKey: string;          // JSON string of primary key
   changedFields: string;   // JSON string of field changes
+  userId?: UUID;
+  username?: string;
+  timestamp: string;       // ISO 8601 timestamp
+  tenantId: string;
+  envId: string;
+}
+
+// Audit record with parsed changedFields (recommended for processing)
+interface ParsedAuditRecord extends Omit<AuditRecord, 'changedFields'> {
+  changedFields: Record<string, AuditFieldChange>;  // Strongly typed
 }
 
 // Request structure (primary key fields)
@@ -1291,20 +1329,23 @@ interface AuditRequest {
 
 // Response structure
 interface AuditResponse {
-  results: AuditEvent[];   // Array of audit events
+  recordCount: number;     // Total number of audit records
+  results: AuditRecord[];  // Array of audit records
 }
 ```
 
 #### Field Change Format
 
-The `changedFields` property contains a JSON string with before/after values:
+The `changedFields` property contains a JSON string with before/after values. Use `getTableAuditParsed()` for strongly typed access:
 
 ```typescript
-// Example changedFields JSON:
+// Raw changedFields JSON string:
 {
   "unitPrice": {
     "before": "25.00",
-    "after": "29.99"
+    "after": "29.99",
+    "before_display": "$25.00",
+    "after_display": "$29.99"
   },
   "unitsInStock": {
     "before": "10", 
@@ -1312,8 +1353,20 @@ The `changedFields` property contains a JSON string with before/after values:
   }
 }
 
+// Strongly typed access with getTableAuditParsed():
+const parsedAudit = await auditService.getTableAuditParsed('Northwinds', 'Products', { productId: 123 });
+parsedAudit.forEach(record => {
+  // record.changedFields is now Record<string, AuditFieldChange>
+  const priceChange = record.changedFields.unitPrice;
+  if (priceChange) {
+    console.log(`Price: ${priceChange.before} → ${priceChange.after}`);
+    console.log(`Display: ${priceChange.before_display} → ${priceChange.after_display}`);
+  }
+});
+
 // For INSERT operations, only "after" values are present
 // For DELETE operations, only "before" values are present
+// "before_display" and "after_display" provide human-readable representations
 ```
 
 ### Job Service
