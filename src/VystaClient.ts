@@ -13,10 +13,11 @@ import {
   ValidateInvitationParams,
   ValidateInvitationResponse,
 } from './VystaAuth.js';
-import type { FilterCondition, QueryParams, UserProfile, EnvironmentAvailable } from './types.js';
+import type { FilterCondition, QueryParams, UserProfile, EnvironmentAvailable, ETagConfig, ETagCacheStats } from './types.js';
 import { AuthResult, FileType } from './types.js';
 import { CacheStorage, CacheConfig } from './cache/CacheStorage.js';
 import { DefaultCacheStorage } from './cache/DefaultCacheStorage.js';
+import { ETagCache } from './etag/ETagCache.js';
 
 export interface GetResponse<T> {
   data: T[];
@@ -34,12 +35,17 @@ export interface VystaConfig {
    * Useful for multi-tenant scenarios where the backend needs to know the originating host.
    */
   host?: string;
+  /**
+   * ETag cache configuration for 304 Not Modified support
+   */
+  etag?: ETagConfig;
 }
 
 export class VystaClient {
   private auth: VystaAuth;
   private debug: boolean;
   private cache: CacheStorage = new DefaultCacheStorage();
+  private etagCache: ETagCache;
 
   constructor(private config: VystaConfig) {
     this.debug = config.debug || false;
@@ -49,6 +55,7 @@ export class VystaClient {
       this.auth.setHost(config.host);
     }
     this.initializeCache();
+    this.etagCache = new ETagCache(config.etag);
   }
 
   private initializeCache(): void {
@@ -68,6 +75,34 @@ export class VystaClient {
     if (this.debug) {
       console.log('[VystaClient]', ...args);
     }
+  }
+
+  /**
+   * Parses a path to extract connection and endpoint for ETag caching
+   * @param path - The API path (e.g., "rest/connections/Northwinds/tables/Products")
+   * @returns Object with connection and endpoint
+   */
+  private parsePathForETag(path: string): { connection: string; endpoint: string } {
+    // Handle paths like "rest/connections/ConnectionName/tables/TableName"
+    // or "rest/connections/ConnectionName/views/ViewName"
+    const pathParts = path.split('/').filter(p => p.length > 0);
+    
+    let connection = 'default';
+    let endpoint = 'default';
+
+    if (pathParts.length >= 4 && pathParts[0] === 'rest' && pathParts[1] === 'connections') {
+      connection = pathParts[2];
+      // endpoint includes the resource type and name, e.g., "tables/Products"
+      endpoint = pathParts.slice(3).join('/');
+    } else if (pathParts.length >= 2) {
+      // Fallback for other path patterns
+      connection = pathParts[0];
+      endpoint = pathParts.slice(1).join('/');
+    } else {
+      endpoint = path;
+    }
+
+    return { connection, endpoint };
   }
 
   private logRequest(method: string, url: string, body?: any) {
@@ -209,15 +244,60 @@ export class VystaClient {
         throw new Error('Use query() method for queries with conditions');
       }
 
-      const headers = await this.auth.getAuthHeaders();
-      const url = this.getBackendUrl(`${path}${this.buildQueryString(params)}`);
+      // Extract connection and endpoint from path for ETag caching
+      const { connection, endpoint } = this.parsePathForETag(path);
+      const cacheKey = this.etagCache.generateCacheKey(connection, endpoint, params);
 
+      const authHeaders = await this.auth.getAuthHeaders();
+      const headers: Record<string, string> = { ...authHeaders as Record<string, string> };
+      
+      // Check for cached ETag and add If-None-Match header
+      const cachedEntry = this.etagCache.get(cacheKey);
+      if (cachedEntry && this.etagCache.isEnabled()) {
+        headers['If-None-Match'] = cachedEntry.etag;
+        this.log(`Using cached ETag for ${path}:`, cachedEntry.etag);
+      }
+
+      const url = this.getBackendUrl(`${path}${this.buildQueryString(params)}`);
       this.logRequest('GET', url);
 
       const response = await fetch(url, {
         method: 'GET',
         headers,
       });
+
+      // Handle 304 Not Modified
+      if (response.status === 304) {
+        this.log('304 Not Modified - using cached data');
+        if (cachedEntry) {
+          return cachedEntry.data;
+        } else {
+          // Should not happen, but handle gracefully
+          console.warn('[VystaClient] Received 304 but no cached data found. Retrying without If-None-Match.');
+          // Retry without If-None-Match
+          const retryHeaders = await this.auth.getAuthHeaders();
+          const retryResponse = await fetch(url, {
+            method: 'GET',
+            headers: retryHeaders,
+          });
+          if (!retryResponse.ok) {
+            await this.handleErrorResponse(retryResponse, url);
+          }
+          const data = await retryResponse.json();
+          const recordCount = params?.recordCount
+            ? Number(retryResponse.headers.get('Recordcount') ?? -1)
+            : undefined;
+          const result = { data, recordCount };
+          
+          // Store ETag if present
+          const etag = retryResponse.headers.get('ETag');
+          if (etag && this.etagCache.isEnabled()) {
+            this.etagCache.set(cacheKey, etag, result);
+          }
+          
+          return result;
+        }
+      }
 
       if (!response.ok) {
         await this.handleErrorResponse(response, url);
@@ -228,7 +308,16 @@ export class VystaClient {
         ? Number(response.headers.get('Recordcount') ?? -1)
         : undefined;
 
-      return { data, recordCount };
+      const result = { data, recordCount };
+
+      // Store ETag if present
+      const etag = response.headers.get('ETag');
+      if (etag && this.etagCache.isEnabled()) {
+        this.log(`Storing ETag for ${path}:`, etag);
+        this.etagCache.set(cacheKey, etag, result);
+      }
+
+      return result;
     } catch (error) {
       this.log('Request failed:', error);
       throw error instanceof Error ? error : new Error(String(error));
@@ -435,6 +524,7 @@ export class VystaClient {
   /**
    * Performs a POST request to query data using query parameters in the request body.
    * Supports both JSON data retrieval and file downloads.
+   * Note: ETags are not supported for POST /query endpoints (only GET requests)
    * @param path - The path to the resource
    * @param params - Query parameters to be sent in the request body
    * @returns A promise that resolves to either a GetResponse containing data or a Blob for file downloads
@@ -522,12 +612,50 @@ export class VystaClient {
   }
 
   /**
-   * Clears all cached data
+   * Clears cache entries
+   * When called without arguments: clears both regular cache and ETag cache
+   * With connection and endpoint: clears ETag cache for specific endpoint
+   * With connection, endpoint, and params: clears ETag cache for specific query
+   * 
+   * @param connection - Optional connection name
+   * @param endpoint - Optional endpoint name
+   * @param params - Optional query parameters for specific query cache clearing
    */
-  async clearCache(): Promise<void> {
-    if (this.cache) {
-      await this.cache.clear();
+  async clearCache(connection?: string, endpoint?: string, params?: any): Promise<void> {
+    if (!connection && !endpoint) {
+      // Clear all caches
+      if (this.cache) {
+        await this.cache.clear();
+      }
+      this.etagCache.clearAll();
+    } else if (connection && endpoint && params) {
+      // Clear specific query in ETag cache
+      const cacheKey = this.etagCache.generateCacheKey(connection, endpoint, params);
+      this.etagCache.clear(cacheKey);
+    } else if (connection && endpoint) {
+      // Clear all queries for specific endpoint in ETag cache
+      const pattern = `${connection}:${endpoint}:`;
+      this.etagCache.clearByPattern(pattern);
+    } else if (connection) {
+      // Clear all endpoints for a connection in ETag cache
+      const pattern = `${connection}:`;
+      this.etagCache.clearByPattern(pattern);
     }
+  }
+
+  /**
+   * Clears all ETag cache entries
+   */
+  clearAllCache(): void {
+    this.etagCache.clearAll();
+  }
+
+  /**
+   * Gets ETag cache statistics
+   * @returns Statistics including hits, misses, size, and hit rate
+   */
+  getETagCacheStats(): ETagCacheStats {
+    return this.etagCache.getStats();
   }
 
   /**

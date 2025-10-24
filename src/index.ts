@@ -35,6 +35,8 @@ import type {
   ParsedAuditRecord,
   AuditRequest,
   AuditResponse,
+  ETagConfig,
+  ETagCacheStats,
 } from './types.js';
 import type {
   FileInfo,
@@ -147,3 +149,6 @@ export type {
   AuditRecord,
   ParsedAuditRecord 
 } from './types.js';
+
+// Export ETag types (type-only exports)
+export type { ETagConfig, ETagCacheStats } from './types.js';

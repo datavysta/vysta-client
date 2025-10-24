@@ -209,3 +209,21 @@ export interface AuditResponse {
   recordCount: number;
   results: AuditRecord[];
 }
+
+/**
+ * ETag Cache Configuration
+ */
+export interface ETagConfig {
+  enabled?: boolean; // default: true
+  maxCacheSize?: number; // max number of cached responses, default: 100
+}
+
+/**
+ * Cache Statistics for ETag cache
+ */
+export interface ETagCacheStats {
+  hits: number;
+  misses: number;
+  size: number;
+  hitRate: number;
+}
