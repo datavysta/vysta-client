@@ -47,6 +47,7 @@ import { VystaAdminUserService } from './VystaAdminUserService.js';
 import type { CreateUserData, User } from './VystaAdminUserService.js';
 import { VystaTimezoneService } from './VystaTimezoneService.js';
 import type { Timezone } from './VystaTimezoneService.js';
+import { EnvironmentService } from './EnvironmentService.js';
 import { VystaTableAuditService } from './VystaTableAuditService.js';
 import type { GetResponse } from './VystaClient.js';
 import { DefaultCacheStorage } from './cache/DefaultCacheStorage.js';
@@ -101,6 +102,7 @@ export {
   JobSummary,
   VystaAdminUserService,
   VystaTimezoneService,
+  EnvironmentService,
   VystaTableAuditService,
   // Enums
   AuditOperationType,
